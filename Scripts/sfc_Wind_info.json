@@ -1,0 +1,51 @@
+{
+    "MPI-ESM1-2-HR": {
+        "historical": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_historical_sfcWind.nc"
+        },
+        "ssp126": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_ssp126_sfcWind.nc"
+        },
+        "ssp245": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_ssp245_sfcWind.nc"
+        },
+        "ssp370": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_ssp370_sfcWind.nc"
+        },
+        "ssp585": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_ssp585_sfcWind.nc"
+        }
+    },
+    "EC-Earth3-Veg": {
+        "ssp126": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-GERICS_EC-Earth3-Veg_ssp126_sfcWind.nc"
+        },
+        "ssp370": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-GERICS_EC-Earth3-Veg_ssp370_sfcWind.nc"
+        },
+        "historical": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-Hereon_EC-Earth3-Veg_historical_sfcWind.nc",
+            "MEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/MEU-3_CLMcom-Hereon_EC-Earth3-Veg_historical_sfcWind.nc"
+        }
+    },
+    "ERA5": {
+        "evaluation": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-Hereon_ERA5_evaluation_sfcWind.nc",
+            "MEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/MEU-3_CLMcom-Hereon_ERA5_evaluation_sfcWind.nc"
+        }
+    },
+    "MIROC6": {
+        "historical": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-KIT_MIROC6_historical_sfcWind.nc"
+        },
+        "ssp126": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-KIT_MIROC6_ssp126_sfcWind.nc"
+        },
+        "ssp245": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-KIT_MIROC6_ssp245_sfcWind.nc"
+        },
+        "ssp370": {
+            "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind/yearly/EUR-12_CLMcom-KIT_MIROC6_ssp370_sfcWind.nc"
+        }
+    }
+}
