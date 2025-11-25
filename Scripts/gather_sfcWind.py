@@ -10,37 +10,28 @@ import xarray as xr
 from cdo import Cdo
 
 
-def mask_data(input_file):
+def mask_data(input_file, mask2d):
     """
-    Mask sfcWind data so that values outside Germany are set to NaN.
+    Compute Germany fldmean for sfcWind and write a compact time series file.
+    The output variable name remains 'sfcWind'.
     """
     output_file = os.path.join(
         "/scratch/g/g260190/",
         os.path.basename(input_file).replace(".nc", "_fldmean.nc"),
     )
 
-    # Open dataset
-    ds = xr.open_dataset(input_file)
+    # Open only the needed variable with dask chunks
+    ds = xr.open_dataset(input_file, chunks={"time": 12})[["sfcWind"]]
 
-    # Expand mask to match time dimension
-    if "EUR-12" in input_file:
-        mask_file = "mask_EUR-12.nc"
-    elif "MEU-3" in input_file:
-        mask_file = "mask_MEU-3.nc"
-    else:
-        raise ValueError
-    mask2d = xr.open_dataarray(mask_file)
-    mask3d = mask2d.expand_dims(time=ds.time)
+    # Broadcast mask2d across time (no expand_dims needed)
+    fldmean = ds["sfcWind"].where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
 
-    # Apply mask: keep values inside Germany, set outside to NaN
-    ds["sfcWind"] = ds["sfcWind"].where(mask3d == 0)
+    # Keep the variable name 'sfcWind'
+    ds_out = fldmean.to_dataset(name="sfcWind")
 
-    # Apply mask and compute fldmean
-    fldmean = ds["sfcWind"].where(mask3d == 0).mean(dim=["rlat", "rlon"], skipna=True)
-
-    # Save as new dataset
-    fldmean_ds = fldmean.to_dataset(name="sfcWind")
-    fldmean_ds.to_netcdf(output_file)
+    # Efficient write
+    encoding = {"sfcWind": {"zlib": True, "complevel": 4}}
+    ds_out.to_netcdf(output_file, engine="h5netcdf", encoding=encoding)
 
     return output_file
 
@@ -100,8 +91,16 @@ def create_yearly_data(
 
     # Apply mask and fldmean to each file individually before merging
     fldmean_files = []
-    for f in files:
-        fldmean_files.append(mask_data(f))
+    if "EUR-12" in input_folder:
+        mask_file = "mask_EUR-12.nc"
+    elif "MEU-3" in input_folder:
+        mask_file = "mask_MEU-3.nc"
+    else:
+        raise ValueError(f"Unknown resolution in filename: {input_folder}")
+
+    with xr.open_dataarray(mask_file) as mask2d:
+        for f in files:
+            fldmean_files.append(mask_data(f, mask2d))
 
     # Now merge the reduced files in time
     cdo.mergetime(input=fldmean_files, output=dummy_data)
@@ -173,7 +172,7 @@ if __name__ == "__main__":
     precompute_masks()
 
     for spatial_resolution in ["EUR-12", "MEU-3"]:
-        for temporal_resolution in ["yearly"]:  # , "mon", "day", "1hr"]:
+        for temporal_resolution in ["yearly", "mon", "day", "1hr"]:
             base = Path(f"/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/{spatial_resolution}")
             sfc_folders = find_folders(base, temporal_resolution)
             for input_folder in sfc_folders:
