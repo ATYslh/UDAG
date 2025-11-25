@@ -10,31 +10,38 @@ import xarray as xr
 from cdo import Cdo
 
 
-def mask_data(input_file, output_file="/scratch/g/g260190/germany_masked_large.nc"):
+def mask_data(input_file):
     """
     Mask sfcWind data so that values outside Germany are set to NaN.
     """
-    # Load Germany polygon in WGS84
-    world = gpd.read_file("ne_10m_admin_0_countries.shp")
-    germany = world.loc[world["NAME"] == "Germany"].to_crs("EPSG:4326")
+    output_file = os.path.join(
+        "/scratch/g/g260190/",
+        os.path.basename(input_file).replace(".nc", "_fldmean.nc"),
+    )
 
     # Open dataset
     ds = xr.open_dataset(input_file)
 
-    # Build regionmask using geographic lon/lat
-    mask = regionmask.Regions(
-        [germany.geometry.values[0]], names=["Germany"], abbrevs=["DE"]
-    )
-    germany_mask = mask.mask(ds.lon, ds.lat)
-
     # Expand mask to match time dimension
-    mask3d = germany_mask.expand_dims(time=ds.time)
+    if "EUR-12" in input_file:
+        mask_file = "mask_EUR-12.nc"
+    elif "MEU-3" in input_file:
+        mask_file = "mask_MEU-3.nc"
+    else:
+        raise ValueError
+    mask2d = xr.open_dataarray(mask_file)
+    mask3d = mask2d.expand_dims(time=ds.time)
 
     # Apply mask: keep values inside Germany, set outside to NaN
     ds["sfcWind"] = ds["sfcWind"].where(mask3d == 0)
 
-    # Save masked dataset
-    ds.to_netcdf(output_file)
+    # Apply mask and compute fldmean
+    fldmean = ds["sfcWind"].where(mask3d == 0).mean(dim=["rlat", "rlon"], skipna=True)
+
+    # Save as new dataset
+    fldmean_ds = fldmean.to_dataset(name="sfcWind")
+    fldmean_ds.to_netcdf(output_file)
+
     return output_file
 
 
@@ -94,19 +101,7 @@ def create_yearly_data(
     # Apply mask and fldmean to each file individually before merging
     fldmean_files = []
     for f in files:
-        # First mask the file
-        masked_file = os.path.join(
-            "/scratch/g/g260190/", os.path.basename(f).replace(".nc", "_masked.nc")
-        )
-        masked_file = mask_data(f)  # assuming mask_data returns a filename
-
-        # Then compute fldmean on the masked file
-        fldmean_file = os.path.join(
-            "/scratch/g/g260190/", os.path.basename(f).replace(".nc", "_fldmean.nc")
-        )
-        cdo.fldmean(input=masked_file, output=fldmean_file)
-
-        fldmean_files.append(fldmean_file)
+        fldmean_files.append(mask_data(f))
 
     # Now merge the reduced files in time
     cdo.mergetime(input=fldmean_files, output=dummy_data)
@@ -139,12 +134,46 @@ def create_info_json(output_folder):
     write_json_file("sfc_Wind_info.json", info)
 
 
+def precompute_masks():
+    resolutions = {
+        "EUR-12": "/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/EUR-12/CLMcom-Hereon/EC-Earth3-Veg/historical/r1i1p1f1/ICON-CLM-202407-1-1/v1-r1/mon/sfcWind/v20240920/sfcWind_EUR-12_EC-Earth3-Veg_historical_r1i1p1f1_CLMcom-Hereon_ICON-CLM-202407-1-1_v1-r1_mon_195001-195012.nc",
+        "MEU-3": "/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/MEU-3/CLMcom-Hereon/EC-Earth3-Veg/historical/r1i1p1f1/ICON-CLM-202407-1-1/v1-r1/mon/sfcWind/v20240920/sfcWind_MEU-3_EC-Earth3-Veg_historical_r1i1p1f1_CLMcom-Hereon_ICON-CLM-202407-1-1_v1-r1_mon_196001-196012.nc",
+    }
+    shapefile = (
+        "/work/bb1203/g260190_heinrich/UDAG/Scripts/ne_10m_admin_0_countries.shp"
+    )
+    # Load Germany polygon once
+    world = gpd.read_file(shapefile)
+    germany = world.loc[world["NAME"] == "Germany"].to_crs("EPSG:4326")
+    region = regionmask.Regions(
+        [germany.geometry.values[0]], names=["Germany"], abbrevs=["DE"]
+    )
+
+    saved_masks = {}
+
+    for res, nc_file in resolutions.items():
+        ds = xr.open_dataset(nc_file)
+
+        # Build mask for this resolution grid (2D only)
+        mask2d = region.mask(ds.lon, ds.lat)
+
+        # Save mask
+        mask_file = f"mask_{res}.nc"
+        mask2d.to_netcdf(mask_file)
+
+        saved_masks[res] = mask_file
+        print(f"Saved mask for {res} to {mask_file}")
+
+    return saved_masks
+
+
 if __name__ == "__main__":
     output_folder = "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind"
     overwrite = False
+    precompute_masks()
 
     for spatial_resolution in ["EUR-12", "MEU-3"]:
-        for temporal_resolution in ["yearly", "mon", "day", "1hr"]:
+        for temporal_resolution in ["yearly"]:  # , "mon", "day", "1hr"]:
             base = Path(f"/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/{spatial_resolution}")
             sfc_folders = find_folders(base, temporal_resolution)
             for input_folder in sfc_folders:
