@@ -10,43 +10,32 @@ import xarray as xr
 from cdo import Cdo
 
 
-def mask_data(input_file):
+def mask_data(input_file, output_file="/scratch/g/g260190/germany_masked_large.nc"):
+    """
+    Mask sfcWind data so that values outside Germany are set to NaN.
+    """
+    # Load Germany polygon in WGS84
     world = gpd.read_file("ne_10m_admin_0_countries.shp")
-    germany = world[world["NAME"] == "Germany"].to_crs("EPSG:4326")
+    germany = world.loc[world["NAME"] == "Germany"].to_crs("EPSG:4326")
 
+    # Open dataset
     ds = xr.open_dataset(input_file)
 
-    # Create regionmask
+    # Build regionmask using geographic lon/lat
     mask = regionmask.Regions(
         [germany.geometry.values[0]], names=["Germany"], abbrevs=["DE"]
     )
     germany_mask = mask.mask(ds.lon, ds.lat)
 
-    # Drop vertices variables (not needed)
-    vars_to_drop = [v for v in ds.data_vars if "vertices" in v]
-    ds = ds.drop_vars(vars_to_drop)
-
-    # Mask only variables that depend on time, rlat, and rlon
-    spatial_vars = [
-        v for v in ds.data_vars if {"time", "rlat", "rlon"} <= set(ds[v].dims)
-    ]
-    # Expand mask to have a time dimension
+    # Expand mask to match time dimension
     mask3d = germany_mask.expand_dims(time=ds.time)
 
-    # Apply only to variables with time, rlat, rlon
-    masked = ds[["sfcWind"]].where(mask3d == 0, drop=True)
+    # Apply mask: keep values inside Germany, set outside to NaN
+    ds["sfcWind"] = ds["sfcWind"].where(mask3d == 0)
 
-    # Merge back with untouched non-spatial variables
-    ds_germany = xr.merge([masked, ds.drop_vars(spatial_vars)])
-
-    # Drop boundary variables except time_bnds
-    vars_to_drop = [
-        v for v in ds_germany.data_vars if "bnds" in v and v not in ["time_bnds"]
-    ]
-    ds_germany = ds_germany.drop_vars(vars_to_drop)
-
-    ds_germany.to_netcdf("/scratch/g/g260190/germany_masked_large.nc")
-    return "/scratch/g/g260190/germany_masked_large.nc"
+    # Save masked dataset
+    ds.to_netcdf(output_file)
+    return output_file
 
 
 def write_json_file(filename: str, content: dict) -> None:
