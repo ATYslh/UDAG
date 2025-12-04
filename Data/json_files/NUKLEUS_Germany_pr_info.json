@@ -1,0 +1,30 @@
+{
+    "yearly": {
+        "CEU-3": {
+            "evaluation": {
+                "CEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/pr/yearly/CEU-3_CLMcom-Hereon_ERA5_evaluation_pr.nc"
+            },
+            "historical": {
+                "CEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/pr/yearly/CEU-3_CLMcom-KIT_MIROC6_historical_pr.nc"
+            },
+            "ssp245-GWL2K": {
+                "CEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/pr/yearly/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp245-GWL2K_pr.nc"
+            },
+            "ssp245-GWL3K": {
+                "CEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/pr/yearly/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp245-GWL3K_pr.nc"
+            },
+            "ssp370-GWL2K": {
+                "CEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/pr/yearly/CEU-3_CLMcom-KIT_MIROC6_ssp370-GWL2K_pr.nc"
+            },
+            "ssp370-GWL3K": {
+                "CEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/pr/yearly/CEU-3_CLMcom-KIT_MIROC6_ssp370-GWL3K_pr.nc"
+            },
+            "ssp585-GWL2K": {
+                "CEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/pr/yearly/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp585-GWL2K_pr.nc"
+            },
+            "ssp585-GWL3K": {
+                "CEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/pr/yearly/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp585-GWL3K_pr.nc"
+            }
+        }
+    }
+}

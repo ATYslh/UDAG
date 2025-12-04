@@ -21,7 +21,7 @@ def mask_data(input_file: str, mask2d, variable: str):
     )
 
     # Open only the needed variable with dask chunks
-    ds = xr.open_dataset(input_file, chunks={"time": 12})[[variable]]
+    ds = xr.open_dataset(input_file, chunks={})[[variable]]
 
     # Broadcast mask2d across time (no expand_dims needed)
     fldmean = ds[variable].where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
@@ -81,7 +81,22 @@ def get_sorted_nc_files(folder_path: str, substring=None):
 
 def generate_filename(folder: str, variable: str) -> str:
     parts = folder.split("/")
-    return "_".join([parts[6], parts[7], parts[8], parts[9], variable]) + ".nc"
+    if "ESGF_Buff" in folder:  # for UDAG
+        return "_".join([parts[6], parts[7], parts[8], parts[9], variable]) + ".nc"
+    elif "NUKLEUS" in folder:
+        if parts[6] == "EC-Earth-Consortium-EC-Earth3-Veg":
+            parts[6] = "EC-Earth3-Veg"
+        elif parts[6] == "ECMWF-ERA5":
+            parts[6] = "ERA5"
+        elif parts[6] == "MIROC-MIROC6":
+            parts[6] = "MIROC6"
+        elif parts[6] == "MPI-M-MPI-ESM1-2-HR":
+            parts[6] = "MPI-ESM1-2-HR"
+        else:
+            raise ValueError("Cannot identify name of forcing")
+        return "_".join([parts[4], parts[5], parts[6], parts[7], variable]) + ".nc"
+    else:
+        raise ValueError("Cannot identify project name")
 
 
 def create_yearly_data(
@@ -106,11 +121,11 @@ def create_yearly_data(
     # Apply mask and fldmean to each file individually before merging
     fldmean_files = []
     if "EUR-12" in input_folder:
-        mask_file = "mask/mask_EUR-12.nc"
+        mask_file = "masks/mask_EUR-12.nc"
     elif "MEU-3" in input_folder:
-        mask_file = "mask/mask_MEU-3.nc"
+        mask_file = "masks/mask_MEU-3.nc"
     elif "CEU-3" in input_folder:
-        mask_file = "mas/mask_CEU-3.nc"
+        mask_file = "masks/mask_CEU-3.nc"
     else:
         raise ValueError(f"Unknown resolution in filename: {input_folder}")
 
@@ -154,7 +169,7 @@ def create_info_json(output_folder):
     country = output_folder.split("/")[-2]
     project = output_folder.split("/")[-3]
     folders = [
-        f
+        os.path.join(output_folder, f)
         for f in os.listdir(output_folder)
         if os.path.isdir(os.path.join(output_folder, f))
     ]
@@ -162,12 +177,20 @@ def create_info_json(output_folder):
         for file in get_sorted_nc_files(folder):
             parts = os.path.basename(file).split("_")
             temp_resolution = os.path.dirname(file).split("/")[-1]
-            info.setdefault(temp_resolution, {}).setdefault(parts[2], {}).setdefault(
-                parts[3], {}
-            )[parts[0]] = file
+            if project == "UDAG":
+                info.setdefault(temp_resolution, {}).setdefault(
+                    parts[2], {}
+                ).setdefault(parts[3], {})[parts[0]] = file
+            elif project == "NUKLEUS":
+                info.setdefault(temp_resolution, {}).setdefault(
+                    parts[2], {}
+                ).setdefault(parts[3], {})[parts[0]] = file
+            else:
+                raise ValueError("unknown project")
 
     write_json_file(
-        f"{project}_{country}_{variable}_info.json", sort_dict_recursively(info)
+        f"/work/bb1203/g260190_heinrich/UDAG/Data/json_files/{project}_{country}_{variable}_info.json",
+        sort_dict_recursively(info),
     )
 
 
@@ -201,7 +224,7 @@ def precompute_masks(country):
         mask2d = region.mask(ds.lon, ds.lat)
 
         # Save mask
-        mask_file = f"masks/mask_{res}.nc"
+        mask_file = f"/work/bb1203/g260190_heinrich/UDAG/Scripts/masks/mask_{res}.nc"
         mask2d.to_netcdf(mask_file)
 
         saved_masks[res] = mask_file
@@ -211,10 +234,10 @@ def precompute_masks(country):
 
 
 def main():
-    variable = "pr"
+    variable = "sfcWind"
     country = "Germany"
-
     project = "NUKLEUS"
+
     output_folder = (
         f"/work/bb1203/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
     )

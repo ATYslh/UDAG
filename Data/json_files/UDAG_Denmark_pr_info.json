@@ -1,0 +1,70 @@
+{
+    "yearly": {
+        "CNRM-ESM2-1": {
+            "historical": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-BTU_CNRM-ESM2-1_historical_pr.nc"
+            },
+            "ssp126": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-BTU_CNRM-ESM2-1_ssp126_pr.nc"
+            },
+            "ssp245": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-BTU_CNRM-ESM2-1_ssp245_pr.nc"
+            },
+            "ssp370": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-BTU_CNRM-ESM2-1_ssp370_pr.nc"
+            },
+            "ssp585": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-BTU_CNRM-ESM2-1_ssp585_pr.nc"
+            }
+        },
+        "EC-Earth3-Veg": {
+            "historical": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-Hereon_EC-Earth3-Veg_historical_pr.nc",
+                "MEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/MEU-3_CLMcom-Hereon_EC-Earth3-Veg_historical_pr.nc"
+            },
+            "ssp126": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-GERICS_EC-Earth3-Veg_ssp126_pr.nc"
+            },
+            "ssp370": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-GERICS_EC-Earth3-Veg_ssp370_pr.nc"
+            }
+        },
+        "ERA5": {
+            "evaluation": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-Hereon_ERA5_evaluation_pr.nc",
+                "MEU-3": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/MEU-3_CLMcom-Hereon_ERA5_evaluation_pr.nc"
+            }
+        },
+        "MIROC6": {
+            "historical": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-KIT_MIROC6_historical_pr.nc"
+            },
+            "ssp126": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-KIT_MIROC6_ssp126_pr.nc"
+            },
+            "ssp245": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-KIT_MIROC6_ssp245_pr.nc"
+            },
+            "ssp370": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-KIT_MIROC6_ssp370_pr.nc"
+            }
+        },
+        "MPI-ESM1-2-HR": {
+            "historical": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_historical_pr.nc"
+            },
+            "ssp126": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_ssp126_pr.nc"
+            },
+            "ssp245": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_ssp245_pr.nc"
+            },
+            "ssp370": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_ssp370_pr.nc"
+            },
+            "ssp585": {
+                "EUR-12": "/work/bb1203/g260190_heinrich/UDAG/Data/UDAG/Denmark/pr/yearly/EUR-12_CLMcom-DWD_MPI-ESM1-2-HR_ssp585_pr.nc"
+            }
+        }
+    }
+}
