@@ -29,7 +29,6 @@ def mask_data(input_file: str, mask2d, variable: str):
     # Keep the variable name 'variable'
     ds_out = fldmean.to_dataset(name=variable)
 
-    # Efficient write
     encoding = {variable: {"zlib": True, "complevel": 4}}
     ds_out.to_netcdf(output_file, engine="h5netcdf", encoding=encoding)
 
@@ -49,20 +48,14 @@ def find_folders(
 
     if project == "UDAG":
         base = Path(f"/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/{spatial_resolution}")
-        matches = base.glob(
-            f"CLMcom-*/*/*/*/ICON-CLM-202407-1-1/v1-r1/{temporal_resolution}/{variable}/v20240920"
-        )
+        pattern = f"CLMcom-*/*/*/*/ICON-CLM-202407-1-1/v1-r1/{temporal_resolution}/{variable}/v20240920"
     elif project == "NUKLEUS":
         base = Path("/work/bb1203/data_NUKLEUS_CMOR/CEU-3/")
-        matches = base.glob(f"CLMcom-*/*/*/*/*/*/{temporal_resolution}/{variable}/*")
+        pattern = f"CLMcom-*/*/*/*/*/*/{temporal_resolution}/{variable}/*"
     else:
         raise ValueError(f"Unknown project: {project}")
 
-    list_folders = []
-    for m in matches:
-        if m.is_dir():
-            list_folders.append(str(m))
-    return sorted(list_folders)
+    return sorted(str(m) for m in base.glob(pattern) if m.is_dir())
 
 
 def get_sorted_nc_files(folder_path: str, substring=None):
