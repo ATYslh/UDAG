@@ -41,7 +41,9 @@ def write_json_file(filename: str, content: dict) -> None:
         json.dump(content, file, indent=4)
 
 
-def find_folders(base, temporal_resolution, variable) -> list[str]:
+def find_folders(
+    base, temporal_resolution, variable, project, spatial_resolution
+) -> list[str]:
     if temporal_resolution == "yearly":
         temporal_resolution = "mon"
 
@@ -146,18 +148,27 @@ def sort_dict_recursively(d):
     return {k: sort_dict_recursively(d[k]) for k in sorted(d)}
 
 
-def create_info_json(output_folder, variable):
+def create_info_json(output_folder):
     info = {}
-    for file in get_sorted_nc_files(
-        "/work/bb1203/g260190_heinrich/UDAG/Data/pr/yearly"
-    ):
-        parts = os.path.basename(file).split("_")
-        temp_resolution = os.path.dirname(file).split("/")[-1]
-        info.setdefault(temp_resolution, {}).setdefault(parts[2], {}).setdefault(
-            parts[3], {}
-        )[parts[0]] = file
+    variable = output_folder.split("/")[-1]
+    country = output_folder.split("/")[-2]
+    project = output_folder.split("/")[-3]
+    folders = [
+        f
+        for f in os.listdir(output_folder)
+        if os.path.isdir(os.path.join(output_folder, f))
+    ]
+    for folder in folders:
+        for file in get_sorted_nc_files(folder):
+            parts = os.path.basename(file).split("_")
+            temp_resolution = os.path.dirname(file).split("/")[-1]
+            info.setdefault(temp_resolution, {}).setdefault(parts[2], {}).setdefault(
+                parts[3], {}
+            )[parts[0]] = file
 
-    write_json_file(f"{variable}_info.json", sort_dict_recursively(info))
+    write_json_file(
+        f"{project}_{country}_{variable}_info.json", sort_dict_recursively(info)
+    )
 
 
 def precompute_masks(country):
@@ -168,18 +179,18 @@ def precompute_masks(country):
     }
     shapefile = "/work/bb1203/g260190_heinrich/UDAG/Scripts/shape_files/ne_10m_admin_0_countries.shp"
 
-   
     world = gpd.read_file(shapefile)
-    if country=="Germany":
-        abbrev="DE"
-    elif country=="Denmark":
-        abbrev="DK"
+    if country == "Germany":
+        abbrev = "DE"
+    elif country == "Denmark":
+        abbrev = "DK"
     else:
         raise ValueError(f"Unknwon country {country}")
 
-    
     country_info = world.loc[world["NAME"] == country].to_crs("EPSG:4326")
-    region = regionmask.Regions([country_info.geometry.values[0]], names=[country], abbrevs=[abbrev])
+    region = regionmask.Regions(
+        [country_info.geometry.values[0]], names=[country], abbrevs=[abbrev]
+    )
 
     saved_masks = {}
 
@@ -199,7 +210,7 @@ def precompute_masks(country):
     return saved_masks
 
 
-if __name__ == "__main__":
+def main():
     variable = "pr"
     country = "Germany"
 
@@ -221,8 +232,10 @@ if __name__ == "__main__":
         ):
             continue
         for temporal_resolution in list_of_wanted_resolutions:
-            sfc_folders = find_folders(project, temporal_resolution, variable)
-            for input_folder in sfc_folders:
+            data_folders = find_folders(
+                project, temporal_resolution, variable, project, spatial_resolution
+            )
+            for input_folder in data_folders:
                 create_yearly_data(
                     input_folder,
                     output_folder,
@@ -231,4 +244,8 @@ if __name__ == "__main__":
                     variable,
                 )
 
-    create_info_json(output_folder, variable)
+    create_info_json(output_folder)
+
+
+if __name__ == "__main__":
+    main()
