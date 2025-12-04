@@ -84,16 +84,15 @@ def generate_filename(folder: str, variable: str) -> str:
     if "ESGF_Buff" in folder:  # for UDAG
         return "_".join([parts[6], parts[7], parts[8], parts[9], variable]) + ".nc"
     elif "NUKLEUS" in folder:
-        if parts[6] == "EC-Earth-Consortium-EC-Earth3-Veg":
-            parts[6] = "EC-Earth3-Veg"
-        elif parts[6] == "ECMWF-ERA5":
-            parts[6] = "ERA5"
-        elif parts[6] == "MIROC-MIROC6":
-            parts[6] = "MIROC6"
-        elif parts[6] == "MPI-M-MPI-ESM1-2-HR":
-            parts[6] = "MPI-ESM1-2-HR"
-        else:
+        mapping = {
+            "EC-Earth-Consortium-EC-Earth3-Veg": "EC-Earth3-Veg",
+            "ECMWF-ERA5": "ERA5",
+            "MIROC-MIROC6": "MIROC6",
+            "MPI-M-MPI-ESM1-2-HR": "MPI-ESM1-2-HR",
+        }
+        if parts[6] not in mapping:
             raise ValueError("Cannot identify name of forcing")
+        parts[6] = mapping[parts[6]]
         return "_".join([parts[4], parts[5], parts[6], parts[7], variable]) + ".nc"
     else:
         raise ValueError("Cannot identify project name")
@@ -177,16 +176,9 @@ def create_info_json(output_folder):
         for file in get_sorted_nc_files(folder):
             parts = os.path.basename(file).split("_")
             temp_resolution = os.path.dirname(file).split("/")[-1]
-            if project == "UDAG":
-                info.setdefault(temp_resolution, {}).setdefault(
-                    parts[2], {}
-                ).setdefault(parts[3], {})[parts[0]] = file
-            elif project == "NUKLEUS":
-                info.setdefault(temp_resolution, {}).setdefault(
-                    parts[2], {}
-                ).setdefault(parts[3], {})[parts[0]] = file
-            else:
-                raise ValueError("unknown project")
+            info.setdefault(temp_resolution, {}).setdefault(parts[2], {}).setdefault(
+                parts[3], {}
+            )[parts[0]] = file
 
     write_json_file(
         f"/work/bb1203/g260190_heinrich/UDAG/Data/json_files/{project}_{country}_{variable}_info.json",
