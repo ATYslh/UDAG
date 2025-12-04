@@ -10,10 +10,10 @@ import xarray as xr
 from cdo import Cdo
 
 
-def mask_data(input_file, mask2d):
+def mask_data(input_file: str, mask2d, variable: str):
     """
-    Compute Germany fldmean for sfcWind and write a compact time series file.
-    The output variable name remains 'sfcWind'.
+    Compute Germany fldmean for variable and write a compact time series file.
+    The output variable name remains 'variable'.
     """
     output_file = os.path.join(
         "/scratch/g/g260190/",
@@ -21,16 +21,16 @@ def mask_data(input_file, mask2d):
     )
 
     # Open only the needed variable with dask chunks
-    ds = xr.open_dataset(input_file, chunks={"time": 12})[["sfcWind"]]
+    ds = xr.open_dataset(input_file, chunks={"time": 12})[[variable]]
 
     # Broadcast mask2d across time (no expand_dims needed)
-    fldmean = ds["sfcWind"].where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
+    fldmean = ds[variable].where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
 
-    # Keep the variable name 'sfcWind'
-    ds_out = fldmean.to_dataset(name="sfcWind")
+    # Keep the variable name 'variable'
+    ds_out = fldmean.to_dataset(name=variable)
 
     # Efficient write
-    encoding = {"sfcWind": {"zlib": True, "complevel": 4}}
+    encoding = {variable: {"zlib": True, "complevel": 4}}
     ds_out.to_netcdf(output_file, engine="h5netcdf", encoding=encoding)
 
     return output_file
@@ -41,12 +41,21 @@ def write_json_file(filename: str, content: dict) -> None:
         json.dump(content, file, indent=4)
 
 
-def find_folders(base, temporal_resolution) -> list[str]:
+def find_folders(base, temporal_resolution, variable) -> list[str]:
     if temporal_resolution == "yearly":
         temporal_resolution = "mon"
-    matches = base.glob(
-        f"CLMcom-*/*/*/r1i1p1f1/ICON-CLM-202407-1-1/v1-r1/{temporal_resolution}/sfcWind/v20240920"
-    )
+
+    if project == "UDAG":
+        base = Path(f"/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/{spatial_resolution}")
+        matches = base.glob(
+            f"CLMcom-*/*/*/*/ICON-CLM-202407-1-1/v1-r1/{temporal_resolution}/{variable}/v20240920"
+        )
+    elif project == "NUKLEUS":
+        base = Path("/work/bb1203/data_NUKLEUS_CMOR/CEU-3/")
+        matches = base.glob(f"CLMcom-*/*/*/*/*/*/{temporal_resolution}/{variable}/*")
+    else:
+        raise ValueError(f"Unknown project: {project}")
+
     list_folders = []
     for m in matches:
         if m.is_dir():
@@ -74,11 +83,14 @@ def generate_filename(folder: str, variable: str) -> str:
 
 
 def create_yearly_data(
-    input_folder, output_folder, overwrite, temporal_resolution
+    input_folder, output_folder, overwrite, temporal_resolution, variable: str
 ) -> None:
     output_folder = os.path.join(output_folder, temporal_resolution)
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
+
     output_filename = os.path.join(
-        output_folder, generate_filename(input_folder, "sfcWind")
+        output_folder, generate_filename(input_folder, variable)
     )
     if os.path.exists(output_filename) and not overwrite:
         return
@@ -92,15 +104,17 @@ def create_yearly_data(
     # Apply mask and fldmean to each file individually before merging
     fldmean_files = []
     if "EUR-12" in input_folder:
-        mask_file = "mask_EUR-12.nc"
+        mask_file = "mask/mask_EUR-12.nc"
     elif "MEU-3" in input_folder:
-        mask_file = "mask_MEU-3.nc"
+        mask_file = "mask/mask_MEU-3.nc"
+    elif "CEU-3" in input_folder:
+        mask_file = "mas/mask_CEU-3.nc"
     else:
         raise ValueError(f"Unknown resolution in filename: {input_folder}")
 
     with xr.open_dataarray(mask_file) as mask2d:
         for f in files:
-            fldmean_files.append(mask_data(f, mask2d))
+            fldmean_files.append(mask_data(f, mask2d, variable))
 
     # Now merge the reduced files in time
     cdo.mergetime(input=fldmean_files, output=dummy_data)
@@ -121,32 +135,51 @@ def create_yearly_data(
         os.system(f"mv {dummy_data} {output_filename}")
 
 
-def create_info_json(output_folder):
+def sort_dict_recursively(d):
+    """
+    Recursively sorts a dictionary by its keys alphabetically.
+    """
+    if not isinstance(d, dict):
+        return d  # Base case: return non-dict values as-is
+
+    # Sort keys and apply recursively to values
+    return {k: sort_dict_recursively(d[k]) for k in sorted(d)}
+
+
+def create_info_json(output_folder, variable):
     info = {}
-    for file in get_sorted_nc_files(output_folder):
+    for file in get_sorted_nc_files(
+        "/work/bb1203/g260190_heinrich/UDAG/Data/pr/yearly"
+    ):
         parts = os.path.basename(file).split("_")
         temp_resolution = os.path.dirname(file).split("/")[-1]
         info.setdefault(temp_resolution, {}).setdefault(parts[2], {}).setdefault(
             parts[3], {}
         )[parts[0]] = file
 
-    write_json_file("sfc_Wind_info.json", info)
+    write_json_file(f"{variable}_info.json", sort_dict_recursively(info))
 
 
-def precompute_masks():
+def precompute_masks(country):
     resolutions = {
         "EUR-12": "/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/EUR-12/CLMcom-Hereon/EC-Earth3-Veg/historical/r1i1p1f1/ICON-CLM-202407-1-1/v1-r1/mon/sfcWind/v20240920/sfcWind_EUR-12_EC-Earth3-Veg_historical_r1i1p1f1_CLMcom-Hereon_ICON-CLM-202407-1-1_v1-r1_mon_195001-195012.nc",
         "MEU-3": "/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/MEU-3/CLMcom-Hereon/EC-Earth3-Veg/historical/r1i1p1f1/ICON-CLM-202407-1-1/v1-r1/mon/sfcWind/v20240920/sfcWind_MEU-3_EC-Earth3-Veg_historical_r1i1p1f1_CLMcom-Hereon_ICON-CLM-202407-1-1_v1-r1_mon_196001-196012.nc",
+        "CEU-3": "/work/bb1203/data_NUKLEUS_CMOR/CEU-3/CLMcom-Hereon/MPI-M-MPI-ESM1-2-HR/historical/r1i1p1f1/CLMcom-Hereon-CCLM-6-0-clm2/nukleus-x2yn2-v1/mon/tas/v20230222/tas_CEU-3_MPI-M-MPI-ESM1-2-HR_historical_r1i1p1f1_CLMcom-Hereon-CCLM-6-0-clm2_nukleus-x2yn2-v1_mon_196101-196112.nc",
     }
-    shapefile = (
-        "/work/bb1203/g260190_heinrich/UDAG/Scripts/ne_10m_admin_0_countries.shp"
-    )
-    # Load Germany polygon once
+    shapefile = "/work/bb1203/g260190_heinrich/UDAG/Scripts/shape_files/ne_10m_admin_0_countries.shp"
+
+   
     world = gpd.read_file(shapefile)
-    germany = world.loc[world["NAME"] == "Germany"].to_crs("EPSG:4326")
-    region = regionmask.Regions(
-        [germany.geometry.values[0]], names=["Germany"], abbrevs=["DE"]
-    )
+    if country=="Germany":
+        abbrev="DE"
+    elif country=="Denmark":
+        abbrev="DK"
+    else:
+        raise ValueError(f"Unknwon country {country}")
+
+    
+    country_info = world.loc[world["NAME"] == country].to_crs("EPSG:4326")
+    region = regionmask.Regions([country_info.geometry.values[0]], names=[country], abbrevs=[abbrev])
 
     saved_masks = {}
 
@@ -157,7 +190,7 @@ def precompute_masks():
         mask2d = region.mask(ds.lon, ds.lat)
 
         # Save mask
-        mask_file = f"mask_{res}.nc"
+        mask_file = f"masks/mask_{res}.nc"
         mask2d.to_netcdf(mask_file)
 
         saved_masks[res] = mask_file
@@ -167,17 +200,35 @@ def precompute_masks():
 
 
 if __name__ == "__main__":
-    output_folder = "/work/bb1203/g260190_heinrich/UDAG/Data/sfcWind"
-    overwrite = False
-    precompute_masks()
+    variable = "pr"
+    country = "Germany"
 
-    for spatial_resolution in ["EUR-12", "MEU-3"]:
-        for temporal_resolution in ["yearly", "mon", "day", "1hr"]:
-            base = Path(f"/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/{spatial_resolution}")
-            sfc_folders = find_folders(base, temporal_resolution)
+    project = "NUKLEUS"
+    output_folder = (
+        f"/work/bb1203/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
+    )
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
+
+    list_of_wanted_resolutions = ["yearly"]  # ["yearly", "mon", "day", "1hr"]
+
+    overwrite = False
+    precompute_masks(country)
+
+    for spatial_resolution in ["EUR-12", "MEU-3", "CEU-3"]:
+        if (spatial_resolution == "CEU-3" and project != "NUKLEUS") or (
+            spatial_resolution != "CEU-3" and project == "NUKLEUS"
+        ):
+            continue
+        for temporal_resolution in list_of_wanted_resolutions:
+            sfc_folders = find_folders(project, temporal_resolution, variable)
             for input_folder in sfc_folders:
                 create_yearly_data(
-                    input_folder, output_folder, overwrite, temporal_resolution
+                    input_folder,
+                    output_folder,
+                    overwrite,
+                    temporal_resolution,
+                    variable,
                 )
 
-    create_info_json(output_folder)
+    create_info_json(output_folder, variable)
