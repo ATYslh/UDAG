@@ -174,7 +174,7 @@ def create_info_json(output_folder):
             )[parts[0]] = file
 
     write_json_file(
-        f"/work/bb1203/g260190_heinrich/UDAG/Data/json_files/{project}_{country}_{variable}_info.json",
+        f"/work/bb1364/g260190_heinrich/UDAG/Data/json_files/{project}_{country}_{variable}_info.json",
         sort_dict_recursively(info),
     )
 
@@ -185,7 +185,7 @@ def precompute_masks(country):
         "MEU-3": "/work/bb1149/ESGF_Buff/CORDEX-CMIP6/DD/MEU-3/CLMcom-Hereon/EC-Earth3-Veg/historical/r1i1p1f1/ICON-CLM-202407-1-1/v1-r1/mon/sfcWind/v20240920/sfcWind_MEU-3_EC-Earth3-Veg_historical_r1i1p1f1_CLMcom-Hereon_ICON-CLM-202407-1-1_v1-r1_mon_196001-196012.nc",
         "CEU-3": "/work/bb1203/data_NUKLEUS_CMOR/CEU-3/CLMcom-Hereon/MPI-M-MPI-ESM1-2-HR/historical/r1i1p1f1/CLMcom-Hereon-CCLM-6-0-clm2/nukleus-x2yn2-v1/mon/tas/v20230222/tas_CEU-3_MPI-M-MPI-ESM1-2-HR_historical_r1i1p1f1_CLMcom-Hereon-CCLM-6-0-clm2_nukleus-x2yn2-v1_mon_196101-196112.nc",
     }
-    shapefile = "/work/bb1203/g260190_heinrich/UDAG/Scripts/shape_files/ne_10m_admin_0_countries.shp"
+    shapefile = "/work/bb1364/g260190_heinrich/UDAG/Scripts/shape_files/ne_10m_admin_0_countries.shp"
 
     world = gpd.read_file(shapefile)
     if country == "Germany":
@@ -209,7 +209,7 @@ def precompute_masks(country):
         mask2d = region.mask(ds.lon, ds.lat)
 
         # Save mask
-        mask_file = f"/work/bb1203/g260190_heinrich/UDAG/Scripts/masks/mask_{res}.nc"
+        mask_file = f"/work/bb1364/g260190_heinrich/UDAG/Scripts/masks/mask_{res}.nc"
         mask2d.to_netcdf(mask_file)
 
         saved_masks[res] = mask_file
@@ -219,12 +219,12 @@ def precompute_masks(country):
 
 
 def main():
-    variable = "sfcWind"
+    variable = "tasmin"
     country = "Germany"
     project = "NUKLEUS"
 
     output_folder = (
-        f"/work/bb1203/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
+        f"/work/bb1364/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
     )
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
