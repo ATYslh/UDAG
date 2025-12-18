@@ -2,7 +2,7 @@
 #SBATCH --job-name=sfcWind
 #SBATCH --output=sfcWind.o%J
 #SBATCH --error=sfcWind.o%J
-#SBATCH --partition=compute
+#SBATCH --partition=shared
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=24G
@@ -12,4 +12,4 @@
 #SBATCH --mail-type=END,FAIL
 #SBATCH --account=bb1203
 
-srun python3 gather_data.py
+srun python3 gather_data_nocmor_SSP585_EC_EARTH.py

@@ -140,9 +140,14 @@ def create_yearly_data(
     # At this point dummy_data is already masked+fldmean, so just do temporal averaging
     if temporal_resolution == "yearly":
         cdo.yearmonmean(input=dummy_data, output=output_filename)
-    else:
+    elif temporal_resolution =="mon":
+        cdo.monmean(input=dummy_data, output=output_filename)
+    elif temporal_resolution =="day":
+        cdo.monmean(input=dummy_data, output=output_filename)
+    elif temporal_resolution =="1hr":
         os.system(f"mv {dummy_data} {output_filename}")
-
+    else:
+        raise ValueError("Unknown resolution or resolution not available.")
 
 def sort_dict_recursively(d):
     """
@@ -219,40 +224,42 @@ def precompute_masks(country):
 
 
 def main():
-    variable = "tasmin"
-    country = "Germany"
-    project = "NUKLEUS"
-
-    output_folder = (
-        f"/work/bb1364/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
-    )
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
-
+    variables = ["pr"]
+    country = "Denmark"
+    project = "UDAG"
+    
     list_of_wanted_resolutions = ["yearly"]  # ["yearly", "mon", "day", "1hr"]
 
     overwrite = False
     precompute_masks(country)
 
-    for spatial_resolution in ["EUR-12", "MEU-3", "CEU-3"]:
-        if (spatial_resolution == "CEU-3" and project != "NUKLEUS") or (
-            spatial_resolution != "CEU-3" and project == "NUKLEUS"
-        ):
-            continue
-        for temporal_resolution in list_of_wanted_resolutions:
-            data_folders = find_folders(
-                project, temporal_resolution, variable, project, spatial_resolution
-            )
-            for input_folder in data_folders:
-                create_yearly_data(
-                    input_folder,
-                    output_folder,
-                    overwrite,
-                    temporal_resolution,
-                    variable,
-                )
 
-    create_info_json(output_folder)
+    for variable in variables:
+        output_folder = (
+            f"/work/bb1364/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
+        )
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
+
+        for spatial_resolution in ["EUR-12", "MEU-3", "CEU-3"]:
+            if (spatial_resolution == "CEU-3" and project != "NUKLEUS") or (
+                spatial_resolution != "CEU-3" and project == "NUKLEUS"
+            ):
+                continue
+            for temporal_resolution in list_of_wanted_resolutions:
+                data_folders = find_folders(
+                    project, temporal_resolution, variable, project, spatial_resolution
+                )
+                for input_folder in data_folders:
+                    create_yearly_data(
+                        input_folder,
+                        output_folder,
+                        overwrite,
+                        temporal_resolution,
+                        variable,
+                    )
+
+        create_info_json(output_folder)
 
 
 if __name__ == "__main__":
