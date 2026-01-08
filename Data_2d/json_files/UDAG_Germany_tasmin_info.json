@@ -1,0 +1,38 @@
+{
+    "day": {
+        "ERA5": {
+            "evaluation": {
+                "EUR-12": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmin/day/EUR-12_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ],
+                "MEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmin/day/MEU-3_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ]
+            }
+        }
+    },
+    "mon": {
+        "ERA5": {
+            "evaluation": {
+                "EUR-12": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmin/mon/EUR-12_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ],
+                "MEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmin/mon/MEU-3_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ]
+            }
+        }
+    },
+    "yearly": {
+        "ERA5": {
+            "evaluation": {
+                "EUR-12": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmin/yearly/EUR-12_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ],
+                "MEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmin/yearly/MEU-3_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ]
+            }
+        }
+    }
+}

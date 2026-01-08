@@ -1,0 +1,32 @@
+{
+    "day": {
+        "ERA5": {
+            "evaluation": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_ERA5_evaluation_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ]
+            }
+        }
+    },
+    "mon": {
+        "ERA5": {
+            "evaluation": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/NUKLEUS/Germany/tasmin/mon/CEU-3_CLMcom-BTU_ERA5_evaluation_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/NUKLEUS/Germany/tasmin/mon/CEU-3_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ]
+            }
+        }
+    },
+    "yearly": {
+        "ERA5": {
+            "evaluation": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/NUKLEUS/Germany/tasmin/yearly/CEU-3_CLMcom-BTU_ERA5_evaluation_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/NUKLEUS/Germany/tasmin/yearly/CEU-3_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ]
+            }
+        }
+    }
+}

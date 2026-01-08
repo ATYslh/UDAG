@@ -1,0 +1,38 @@
+{
+    "day": {
+        "ERA5": {
+            "evaluation": {
+                "EUR-12": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmax/day/EUR-12_CLMcom-Hereon_ERA5_evaluation_tasmax.nc"
+                ],
+                "MEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmax/day/MEU-3_CLMcom-Hereon_ERA5_evaluation_tasmax.nc"
+                ]
+            }
+        }
+    },
+    "mon": {
+        "ERA5": {
+            "evaluation": {
+                "EUR-12": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmax/mon/EUR-12_CLMcom-Hereon_ERA5_evaluation_tasmax.nc"
+                ],
+                "MEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmax/mon/MEU-3_CLMcom-Hereon_ERA5_evaluation_tasmax.nc"
+                ]
+            }
+        }
+    },
+    "yearly": {
+        "ERA5": {
+            "evaluation": {
+                "EUR-12": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmax/yearly/EUR-12_CLMcom-Hereon_ERA5_evaluation_tasmax.nc"
+                ],
+                "MEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data_2d/UDAG/Germany/tasmax/yearly/MEU-3_CLMcom-Hereon_ERA5_evaluation_tasmax.nc"
+                ]
+            }
+        }
+    }
+}
