@@ -140,14 +140,15 @@ def create_yearly_data(
     # At this point dummy_data is already masked+fldmean, so just do temporal averaging
     if temporal_resolution == "yearly":
         cdo.yearmonmean(input=dummy_data, output=output_filename)
-    elif temporal_resolution =="mon":
+    elif temporal_resolution == "mon":
         cdo.monmean(input=dummy_data, output=output_filename)
-    elif temporal_resolution =="day":
+    elif temporal_resolution == "day":
         cdo.monmean(input=dummy_data, output=output_filename)
-    elif temporal_resolution =="1hr":
+    elif temporal_resolution == "1hr":
         os.system(f"mv {dummy_data} {output_filename}")
     else:
         raise ValueError("Unknown resolution or resolution not available.")
+
 
 def sort_dict_recursively(d):
     """
@@ -165,18 +166,27 @@ def create_info_json(output_folder):
     variable = output_folder.split("/")[-1]
     country = output_folder.split("/")[-2]
     project = output_folder.split("/")[-3]
+
     folders = [
         os.path.join(output_folder, f)
         for f in os.listdir(output_folder)
         if os.path.isdir(os.path.join(output_folder, f))
     ]
+
     for folder in folders:
         for file in get_sorted_nc_files(folder):
             parts = os.path.basename(file).split("_")
             temp_resolution = os.path.dirname(file).split("/")[-1]
-            info.setdefault(temp_resolution, {}).setdefault(parts[2], {}).setdefault(
-                parts[3], {}
-            )[parts[0]] = file
+
+            # Navigate to the correct nested dict
+            level = (
+                info.setdefault(temp_resolution, {})
+                .setdefault(parts[2], {})
+                .setdefault(parts[3], {})
+            )
+
+            # Ensure the final key stores a list
+            level.setdefault(parts[0], []).append(file)
 
     write_json_file(
         f"/work/bb1364/g260190_heinrich/UDAG/Data/json_files/{project}_{country}_{variable}_info.json",
@@ -224,15 +234,14 @@ def precompute_masks(country):
 
 
 def main():
-    variables = ["pr"]
-    country = "Denmark"
-    project = "UDAG"
-    
-    list_of_wanted_resolutions = ["yearly"]  # ["yearly", "mon", "day", "1hr"]
+    variables = ["tas", "tasmax", "tasmin"]
+    country = "Germany"
+    project = "NUKLEUS"
+
+    list_of_wanted_resolutions = ["yearly", "mon"]  # ["yearly", "mon", "day", "1hr"]
 
     overwrite = False
     precompute_masks(country)
-
 
     for variable in variables:
         output_folder = (
