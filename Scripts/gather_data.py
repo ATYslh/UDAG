@@ -162,6 +162,7 @@ def sort_dict_recursively(d):
 
 
 def create_info_json(output_folder):
+    print("Creating json files")
     info = {}
     variable = output_folder.split("/")[-1]
     country = output_folder.split("/")[-2]
@@ -236,7 +237,7 @@ def precompute_masks(country):
 def main():
     variables = ["tas", "tasmax", "tasmin"]
     country = "Germany"
-    project = "NUKLEUS"
+    project = "UDAG"
 
     list_of_wanted_resolutions = ["yearly", "mon"]  # ["yearly", "mon", "day", "1hr"]
 

@@ -33,10 +33,9 @@ def mask_data(input_file: str, mask2d, variable: str):
     # Open only the needed variable with dask chunks
     ds = xr.open_dataset(input_file, chunks={})[[variable_old]]
 
-    ds_scaled = ds[variable_old] / 3600.0
 
     # Broadcast mask2d across time (no expand_dims needed)
-    fldmean = ds_scaled.where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
+    fldmean = ds[variable_old].where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
 
 
     # Keep the variable name 'variable'
@@ -55,7 +54,7 @@ def write_json_file(filename: str, content: dict) -> None:
 
 def find_folders(variable) -> list[str]:
 
-    base = "/work/bb1364/production_runs/work/IES245L01/post/yearly"
+    base = "/work/bb1364/production_runs/work/IAEVALH01/post/yearly"
     variable_old=''
     
     if variable=="tas":
@@ -86,7 +85,7 @@ def get_sorted_nc_files(folder_path: str, substring=None):
 
 
 def generate_filename(variable: str) -> str:
-    return f"EUR-12_CLMcom-Hereon_EC-Earth3-Veg_ssp245_{variable}.nc"
+    return f"MEU-3_CLMcom-Hereon_ERA5-evaluation_{variable}.nc"
 
 def create_yearly_data(
     input_folder, output_folder, overwrite, temporal_resolution, variable: str
@@ -110,7 +109,7 @@ def create_yearly_data(
     # Apply mask and fldmean to each file individually before merging
     fldmean_files = []
 
-    mask_file = "masks/mask_EUR-122.nc"
+    mask_file = "/work/bb1364/g260190_heinrich/UDAG/Scripts/masks/mask_MEU-32.nc"
 
 
     with xr.open_dataarray(mask_file) as mask2d:
@@ -173,18 +172,27 @@ def create_info_json(output_folder):
     variable = output_folder.split("/")[-1]
     country = output_folder.split("/")[-2]
     project = output_folder.split("/")[-3]
+
     folders = [
         os.path.join(output_folder, f)
         for f in os.listdir(output_folder)
         if os.path.isdir(os.path.join(output_folder, f))
     ]
+
     for folder in folders:
         for file in get_sorted_nc_files(folder):
             parts = os.path.basename(file).split("_")
             temp_resolution = os.path.dirname(file).split("/")[-1]
-            info.setdefault(temp_resolution, {}).setdefault(parts[2], {}).setdefault(
-                parts[3], {}
-            )[parts[0]] = file
+
+            # Navigate to the correct nested dict
+            level = (
+                info.setdefault(temp_resolution, {})
+                .setdefault(parts[2], {})
+                .setdefault(parts[3], {})
+            )
+
+            # Ensure the final key stores a list
+            level.setdefault(parts[0], []).append(file)
 
     write_json_file(
         f"/work/bb1364/g260190_heinrich/UDAG/Data/json_files/{project}_{country}_{variable}_info.json",
@@ -194,7 +202,7 @@ def create_info_json(output_folder):
 
 def precompute_masks(country):
     resolutions = {
-        "EUR-12": "/work/bb1364/production_runs/work/IES245L01/post/yearly/TOT_PREC/TOT_PREC_2015010100-2016010100.ncz",
+        "MEU-3": "/work/bb1364/production_runs/work/IAEVALH01/post/yearly/T_2M/T_2M_1951010100-1951123123.ncz",
     }
     shapefile = "/work/bb1364/g260190_heinrich/UDAG/Scripts/shape_files/ne_10m_admin_0_countries.shp"
 
@@ -230,11 +238,11 @@ def precompute_masks(country):
 
 
 def main():
-    variables = ["pr"]
-    country = "Denmark"
+    variables = ["tas","tasmax","tasmin"]
+    country = "Germany"
     project = "UDAG"
     
-    list_of_wanted_resolutions = ["yearly"]  # ["yearly", "mon", "day", "1hr"]
+    list_of_wanted_resolutions = ["yearly","mon"]  # ["yearly", "mon", "day", "1hr"]
 
     overwrite = True
     precompute_masks(country)
