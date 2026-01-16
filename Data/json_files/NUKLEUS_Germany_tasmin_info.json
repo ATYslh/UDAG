@@ -1,4 +1,94 @@
 {
+    "day": {
+        "EC-Earth3-Veg": {
+            "historical": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_EC-Earth3-Veg_historical_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-KIT_EC-Earth3-Veg_historical_tasmin.nc"
+                ]
+            },
+            "ssp245-GWL2K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp245-GWL2K_tasmin.nc"
+                ]
+            },
+            "ssp245-GWL3K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp245-GWL3K_tasmin.nc"
+                ]
+            },
+            "ssp370-GWL2K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp370-GWL2K_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-KIT_EC-Earth3-Veg_ssp370-GWL2K_tasmin.nc"
+                ]
+            },
+            "ssp370-GWL3K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp370-GWL3K_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-KIT_EC-Earth3-Veg_ssp370-GWL3K_tasmin.nc"
+                ]
+            },
+            "ssp585-GWL2K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp585-GWL2K_tasmin.nc"
+                ]
+            },
+            "ssp585-GWL3K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_EC-Earth3-Veg_ssp585-GWL3K_tasmin.nc"
+                ]
+            }
+        },
+        "ERA5": {
+            "evaluation": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_ERA5_evaluation_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-Hereon_ERA5_evaluation_tasmin.nc"
+                ]
+            }
+        },
+        "MIROC6": {
+            "historical": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_MIROC6_historical_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-KIT_MIROC6_historical_tasmin.nc"
+                ]
+            },
+            "ssp370-GWL2K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_MIROC6_ssp370-GWL2K_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-KIT_MIROC6_ssp370-GWL2K_tasmin.nc"
+                ]
+            },
+            "ssp370-GWL3K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_MIROC6_ssp370-GWL3K_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-KIT_MIROC6_ssp370-GWL3K_tasmin.nc"
+                ]
+            }
+        },
+        "MPI-ESM1-2-HR": {
+            "historical": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_MPI-ESM1-2-HR_historical_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-Hereon_MPI-ESM1-2-HR_historical_tasmin.nc"
+                ]
+            },
+            "ssp370-GWL2K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_MPI-ESM1-2-HR_ssp370-GWL2K_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-Hereon_MPI-ESM1-2-HR_ssp370-GWL2K_tasmin.nc"
+                ]
+            },
+            "ssp370-GWL3K": {
+                "CEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-BTU_MPI-ESM1-2-HR_ssp370-GWL3K_tasmin.nc",
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/NUKLEUS/Germany/tasmin/day/CEU-3_CLMcom-Hereon_MPI-ESM1-2-HR_ssp370-GWL3K_tasmin.nc"
+                ]
+            }
+        }
+    },
     "mon": {
         "EC-Earth3-Veg": {
             "historical": {

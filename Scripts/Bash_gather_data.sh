@@ -12,4 +12,4 @@
 #SBATCH --mail-type=END,FAIL
 #SBATCH --account=bb1203
 
-srun python3 gather_data_2d.py
+srun python3 gather_data.py

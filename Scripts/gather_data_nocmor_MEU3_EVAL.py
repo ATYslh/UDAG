@@ -85,7 +85,7 @@ def get_sorted_nc_files(folder_path: str, substring=None):
 
 
 def generate_filename(variable: str) -> str:
-    return f"MEU-3_CLMcom-Hereon_ERA5-evaluation_{variable}.nc"
+    return f"MEU-3_CLMcom-Hereon_ERA5_evaluation_{variable}.nc"
 
 def create_yearly_data(
     input_folder, output_folder, overwrite, temporal_resolution, variable: str
@@ -149,7 +149,7 @@ def create_yearly_data(
     elif temporal_resolution =="mon":
         cdo.monmean(input=dummy_data, output=output_filename)
     elif temporal_resolution =="day":
-        cdo.monmean(input=dummy_data, output=output_filename)
+        cdo.daymean(input=dummy_data, output=output_filename)
     elif temporal_resolution =="1hr":
         os.system(f"mv {dummy_data} {output_filename}")
     else:
@@ -242,7 +242,7 @@ def main():
     country = "Germany"
     project = "UDAG"
     
-    list_of_wanted_resolutions = ["yearly","mon"]  # ["yearly", "mon", "day", "1hr"]
+    list_of_wanted_resolutions = ["day"]  # ["yearly", "mon", "day", "1hr"]
 
     overwrite = True
     precompute_masks(country)
