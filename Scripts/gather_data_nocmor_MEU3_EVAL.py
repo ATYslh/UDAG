@@ -238,11 +238,11 @@ def precompute_masks(country):
 
 
 def main():
-    variables = ["tas","tasmax","tasmin"]
-    country = "Germany"
+    variables = ["pr"]
+    country = "Denmark"
     project = "UDAG"
     
-    list_of_wanted_resolutions = ["day"]  # ["yearly", "mon", "day", "1hr"]
+    list_of_wanted_resolutions = ["yearly","mon"]  # ["yearly", "mon", "day", "1hr"]
 
     overwrite = True
     precompute_masks(country)
