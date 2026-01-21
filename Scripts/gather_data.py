@@ -40,9 +40,21 @@ def write_json_file(filename: str, content: dict) -> None:
         json.dump(content, file, indent=4)
 
 
+def get_highest_temporal_resolution(list_of_wanted_resolutions):
+    temporary_resolutions = {
+        "yearly": 1,
+        "mon": 2,
+        "day": 3,
+        "1hr": 4,
+    }
+
+    return max(list_of_wanted_resolutions, key=lambda x: temporary_resolutions[x])
+
+
 def find_folders(
-    base, temporal_resolution, variable, project, spatial_resolution
+    base, list_of_wanted_resolutions, variable, project, spatial_resolution
 ) -> list[str]:
+    temporal_resolution = get_highest_temporal_resolution(list_of_wanted_resolutions)
     if temporal_resolution == "yearly":
         temporal_resolution = "mon"
 
@@ -91,63 +103,72 @@ def generate_filename(folder: str, variable: str) -> str:
         raise ValueError("Cannot identify project name")
 
 
-def create_yearly_data(
-    input_folder, output_folder, overwrite, temporal_resolution, variable: str
+def create_datasets(
+    input_folder, output_folder_project, overwrite, list_of_wanted_resolutions, variable: str
 ) -> None:
-    output_folder = os.path.join(output_folder, temporal_resolution)
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
-
-    output_filename = os.path.join(
-        output_folder, generate_filename(input_folder, variable)
+    highest_temporal_resolution = get_highest_temporal_resolution(
+        list_of_wanted_resolutions
     )
-    if os.path.exists(output_filename) and not overwrite:
-        return
-
-    files = get_sorted_nc_files(input_folder)
-    dummy_data = "/scratch/g/g260190/dummy.nc"
-    print(f"Working on {input_folder} {datetime.now()}", file=sys.stderr)
-
     cdo = Cdo()
+    dummy_data = ""
+    for temporal_resolution in list_of_wanted_resolutions:
+        output_folder = os.path.join(output_folder_project, temporal_resolution)
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
 
-    # Apply mask and fldmean to each file individually before merging
-    fldmean_files = []
-    if "EUR-12" in input_folder:
-        mask_file = "masks/mask_EUR-12.nc"
-    elif "MEU-3" in input_folder:
-        mask_file = "masks/mask_MEU-3.nc"
-    elif "CEU-3" in input_folder:
-        mask_file = "masks/mask_CEU-3.nc"
-    else:
-        raise ValueError(f"Unknown resolution in filename: {input_folder}")
+        output_filename = os.path.join(
+            output_folder, generate_filename(input_folder, variable)
+        )
+        if os.path.exists(output_filename) and not overwrite:
+            continue
 
-    with xr.open_dataarray(mask_file) as mask2d:
-        for f in files:
-            fldmean_files.append(mask_data(f, mask2d, variable))
+        print(output_filename)
+        
+        if temporal_resolution == highest_temporal_resolution:
+            files = get_sorted_nc_files(input_folder)
+            dummy_data = "/scratch/g/g260190/dummy.nc"
+            print(f"Working on {input_folder} {datetime.now()}", file=sys.stderr)
 
-    # Now merge the reduced files in time
-    cdo.mergetime(input=fldmean_files, output=dummy_data)
+            # Apply mask and fldmean to each file individually before merging
+            fldmean_files = []
+            if "EUR-12" in input_folder:
+                mask_file = "masks/mask_EUR-12.nc"
+            elif "MEU-3" in input_folder:
+                mask_file = "masks/mask_MEU-3.nc"
+            elif "CEU-3" in input_folder:
+                mask_file = "masks/mask_CEU-3.nc"
+            else:
+                raise ValueError(f"Unknown resolution in filename: {input_folder}")
 
-    # Check if we have to limit the years to 2100
-    ds = xr.open_dataset(dummy_data)
-    years = ds["time"].dt.year.values
-    max_year = years.max()
-    if max_year >= 2100:
-        limited_data = "dummy_data_2015_2100.nc"
-        cdo.selyear("2015/2100", input=dummy_data, output=limited_data)
-        os.system(f"mv {limited_data} {dummy_data}")
+            with xr.open_dataarray(mask_file) as mask2d:
+                for f in files:
+                    fldmean_files.append(mask_data(f, mask2d, variable))
 
-    # At this point dummy_data is already masked+fldmean, so just do temporal averaging
-    if temporal_resolution == "yearly":
-        cdo.yearmonmean(input=dummy_data, output=output_filename)
-    elif temporal_resolution == "mon":
-        cdo.monmean(input=dummy_data, output=output_filename)
-    elif temporal_resolution == "day":
-        cdo.daymean(input=dummy_data, output=output_filename)
-    elif temporal_resolution == "1hr":
-        os.system(f"mv {dummy_data} {output_filename}")
-    else:
-        raise ValueError("Unknown resolution or resolution not available.")
+            # Now merge the reduced files in time
+            cdo.mergetime(input=fldmean_files, output=dummy_data)
+
+            # Check if we have to limit the years to 2100
+            ds = xr.open_dataset(dummy_data)
+            years = ds["time"].dt.year.values
+            max_year = years.max()
+            if max_year >= 2100:
+                limited_data = "dummy_data_2015_2100.nc"
+                cdo.selyear("2015/2100", input=dummy_data, output=limited_data)
+                os.system(f"mv {limited_data} {dummy_data}")
+
+        if not dummy_data:
+            raise ValueError("input data is empty")
+        # At this point dummy_data is already masked+fldmean, so just do temporal averaging
+        if temporal_resolution == "yearly":
+            cdo.yearmonmean(input=dummy_data, output=output_filename)
+        elif temporal_resolution == "mon":
+            cdo.monmean(input=dummy_data, output=output_filename)
+        elif temporal_resolution == "day":
+            cdo.daymean(input=dummy_data, output=output_filename)
+        elif temporal_resolution == "1hr":
+            os.system(f"mv {dummy_data} {output_filename}")
+        else:
+            raise ValueError("Unknown resolution or resolution not available.")
 
 
 def sort_dict_recursively(d):
@@ -159,6 +180,17 @@ def sort_dict_recursively(d):
 
     # Sort keys and apply recursively to values
     return {k: sort_dict_recursively(d[k]) for k in sorted(d)}
+
+
+def sorted_resolution(list_of_wanted_resolutions) -> list[str]:
+    temporary_resolutions = {
+        "yearly": 1,
+        "mon": 2,
+        "day": 3,
+        "1hr": 4,
+    }
+    
+    return sorted(list_of_wanted_resolutions, key=lambda x: temporary_resolutions[x], reverse=True)
 
 
 def create_info_json(output_folder):
@@ -235,11 +267,12 @@ def precompute_masks(country):
 
 
 def main():
-    variables = ["pr"]
-    country = "Denmark"
-    project = "UDAG"
+    variables = ["tas","tasmin","tasmax"]
+    country = "Germany"
+    project = "NUKLEUS"
 
     list_of_wanted_resolutions = ["yearly", "mon"]  # ["yearly", "mon", "day", "1hr"]
+    list_of_wanted_resolutions=sorted_resolution(list_of_wanted_resolutions)
 
     overwrite = False
     precompute_masks(country)
@@ -256,18 +289,21 @@ def main():
                 spatial_resolution != "CEU-3" and project == "NUKLEUS"
             ):
                 continue
-            for temporal_resolution in list_of_wanted_resolutions:
-                data_folders = find_folders(
-                    project, temporal_resolution, variable, project, spatial_resolution
+            data_folders = find_folders(
+                project,
+                list_of_wanted_resolutions,
+                variable,
+                project,
+                spatial_resolution,
+            )
+            for input_folder in data_folders:
+                create_datasets(
+                    input_folder,
+                    output_folder,
+                    overwrite,
+                    list_of_wanted_resolutions,
+                    variable,
                 )
-                for input_folder in data_folders:
-                    create_yearly_data(
-                        input_folder,
-                        output_folder,
-                        overwrite,
-                        temporal_resolution,
-                        variable,
-                    )
 
         create_info_json(output_folder)
 
