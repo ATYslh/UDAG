@@ -25,6 +25,7 @@ def calc_wind(mask_path, files)->list[str]:
     for u_wind, v_wind in zip(u_files, v_files):
         outfile = f"/scratch/g/g260190/sfcWind_100m_{hashlib.md5(u_wind.encode()).hexdigest()}"
         if os.path.exists(outfile):
+            fld_means.append(outfile)
             continue
         u_dummy = f"/scratch/g/g260190/u_{hashlib.md5(outfile.encode()).hexdigest()}.nc"
         v_dummy = f"/scratch/g/g260190/v_{hashlib.md5(outfile.encode()).hexdigest()}.nc"
@@ -167,7 +168,10 @@ def create_datasets(
             raise ValueError("input data is empty")
         # At this point dummy_data is already masked+fldmean, so just do temporal averaging
         if temporal_resolution == "yearly":
-            cdo.yearmonmean(input=dummy_data, output=output_filename)
+            if highest_temporal_resolution=="mon":
+                cdo.yearmonmean(input=dummy_data, output=output_filename)
+            else:
+                cdo.yearmean(input=dummy_data, output=output_filename)
         elif temporal_resolution == "mon":
             cdo.monmean(input=dummy_data, output=output_filename)
         elif temporal_resolution == "day":
@@ -175,7 +179,7 @@ def create_datasets(
         elif temporal_resolution == "1hr":
             run_shell_command(f"cp {dummy_data} {output_filename}",5)
         else:
-            raise ValueError("Unknown resolution or resolution not available.")
+            raise ValueError(f"Unknown resolution or resolution not available: {temporal_resolution}")
 
 
 def sort_dict_recursively(d):
