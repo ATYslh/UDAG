@@ -9,34 +9,45 @@ import regionmask
 import xarray as xr
 from cdo import Cdo
 
+# TODO: Add rsds
+# TODO: RENAME: sfcWind
+# TODO REPLACE MV with copy for daily
+# TODO: FIX Bullshit for frequency
+
 
 def mask_data(input_file: str, mask2d, variable: str):
     """
     Compute Germany fldmean for variable and write a compact time series file.
     The output variable name remains 'variable'.
     """
-    if variable=="tas":
-        variable_old="T_2M"
-    elif variable=="tasmax":
-        variable_old="TMAX_2M"
-    elif variable=="tasmin":
-        variable_old="TMIN_2M"
-    elif variable=="pr":
-        variable_old="TOT_PREC"
+    if variable == "tas":
+        variable_old = "T_2M"
+    elif variable == "tasmax":
+        variable_old = "TMAX_2M"
+    elif variable == "tasmin":
+        variable_old = "TMIN_2M"
+    elif variable == "pr":
+        variable_old = "TOT_PREC"
+    elif variable == "rsds":
+        variable_old = "ASOD_S"
+    elif variable == "sfcWind":
+        variable_old = "SP_10M"
     else:
         raise ValueError("unknown variable")
     output_file = os.path.join(
         "/scratch/g/g260190/",
-        os.path.basename(input_file).replace(".nc", f"_{hashlib.md5(input_file.encode()).hexdigest()}.nc"),
+        os.path.basename(input_file).replace(
+            ".nc", f"_{hashlib.md5(input_file.encode()).hexdigest()}.nc"
+        ),
     )
 
     # Open only the needed variable with dask chunks
     ds = xr.open_dataset(input_file, chunks={})[[variable_old]]
 
-
     # Broadcast mask2d across time (no expand_dims needed)
-    fldmean = ds[variable_old].where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
-
+    fldmean = (
+        ds[variable_old].where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
+    )
 
     # Keep the variable name 'variable'
     ds_out = fldmean.to_dataset(name=variable_old)
@@ -53,21 +64,24 @@ def write_json_file(filename: str, content: dict) -> None:
 
 
 def find_folders(variable) -> list[str]:
-
     base = "/work/bb1364/production_runs/work/IAEVALH01/post/yearly"
-    variable_old=''
-    
-    if variable=="tas":
-        variable_old="T_2M"
-    elif variable=="tasmax":
-        variable_old="TMAX_2M"
-    elif variable=="tasmin":
-        variable_old="TMIN_2M"
-    elif variable=="pr":
-        variable_old="TOT_PREC"
+    variable_old = ""
+
+    if variable == "tas":
+        variable_old = "T_2M"
+    elif variable == "tasmax":
+        variable_old = "TMAX_2M"
+    elif variable == "tasmin":
+        variable_old = "TMIN_2M"
+    elif variable == "pr":
+        variable_old = "TOT_PREC"
+    elif variable == "rsds":
+        variable_old = "ASOD_S"
+    elif variable == "sfcWind":
+        variable_old = "SP_10M"
     else:
         raise ValueError("unknown variable")
-    return [os.path.join(base,variable_old)]
+    return [os.path.join(base, variable_old)]
 
 
 def get_sorted_nc_files(folder_path: str, substring=None):
@@ -87,16 +101,15 @@ def get_sorted_nc_files(folder_path: str, substring=None):
 def generate_filename(variable: str) -> str:
     return f"MEU-3_CLMcom-Hereon_ERA5_evaluation_{variable}.nc"
 
+
 def create_yearly_data(
     input_folder, output_folder, overwrite, temporal_resolution, variable: str
 ) -> None:
-    output_folder = os.path.join(output_folder, temporal_resolution)
+    output_folder = os.path.join(output_folder, temporal_resolution[0])
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
-    output_filename = os.path.join(
-        output_folder, generate_filename(variable)
-    )
+    output_filename = os.path.join(output_folder, generate_filename(variable))
     if os.path.exists(output_filename) and not overwrite:
         return
 
@@ -110,7 +123,6 @@ def create_yearly_data(
     fldmean_files = []
 
     mask_file = "/work/bb1364/g260190_heinrich/UDAG/Scripts/masks/mask_MEU-32.nc"
-
 
     with xr.open_dataarray(mask_file) as mask2d:
         for f in files:
@@ -128,32 +140,36 @@ def create_yearly_data(
         cdo.selyear("2015/2100", input=dummy_data, output=limited_data)
         os.system(f"mv {limited_data} {dummy_data}")
 
-    variable_old=""
-    if variable=="tas":
-        variable_old="T_2M"
-    elif variable=="tasmax":
-        variable_old="TMAX_2M"
-    elif variable=="tasmin":
-        variable_old="TMIN_2M"
-    elif variable=="pr":
-        variable_old="TOT_PREC"
+    variable_old = ""
+    if variable == "tas":
+        variable_old = "T_2M"
+    elif variable == "tasmax":
+        variable_old = "TMAX_2M"
+    elif variable == "tasmin":
+        variable_old = "TMIN_2M"
+    elif variable == "pr":
+        variable_old = "TOT_PREC"
+    elif variable == "rsds":
+        variable_old = "ASOD_S"
+    elif variable == "sfcWind":
+        variable_old = "SP_10M"
     else:
         raise ValueError("unknown variable")
 
     os.system(f"ncrename -v {variable_old},{variable} {dummy_data}")
 
-
     # At this point dummy_data is already masked+fldmean, so just do temporal averaging
-    if temporal_resolution == "yearly":
-        cdo.yearmean(input=dummy_data, output=output_filename)
-    elif temporal_resolution =="mon":
-        cdo.monmean(input=dummy_data, output=output_filename)
-    elif temporal_resolution =="day":
-        cdo.daymean(input=dummy_data, output=output_filename)
-    elif temporal_resolution =="1hr":
-        os.system(f"mv {dummy_data} {output_filename}")
-    else:
-        raise ValueError("Unknown resolution or resolution not available.")
+    for resolution in temporal_resolution:
+        if resolution == "yearly":
+            cdo.yearmean(input=dummy_data, output=output_filename)
+        elif resolution == "mon":
+            cdo.monmean(input=dummy_data, output=output_filename)
+        elif resolution == "day":
+            cdo.daymean(input=dummy_data, output=output_filename)
+        elif resolution == "1hr":
+            os.system(f"cp {dummy_data} {output_filename}")
+        else:
+            raise ValueError("Unknown resolution or resolution not available.")
 
 
 def sort_dict_recursively(d):
@@ -236,17 +252,29 @@ def precompute_masks(country):
 
     return saved_masks
 
+def sorted_resolution(list_of_wanted_resolutions) -> list[str]:
+    temporary_resolutions = {
+        "yearly": 1,
+        "mon": 2,
+        "day": 3,
+        "1hr": 4,
+    }
+    
+    return sorted(list_of_wanted_resolutions, key=lambda x: temporary_resolutions[x], reverse=True)
 
 def main():
-    variables = ["pr"]
-    country = "Denmark"
+    variables = ["pr", "rsds", "sfcWind"]
+    country = "Germany"
     project = "UDAG"
-    
-    list_of_wanted_resolutions = ["yearly","mon"]  # ["yearly", "mon", "day", "1hr"]
 
+    list_of_wanted_resolutions = [
+        "yearly",
+        "mon",
+        "day",
+    ]  # ["yearly", "mon", "day", "1hr"]
+    list_of_wanted_resolutions=sorted_resolution(list_of_wanted_resolutions)
     overwrite = True
     precompute_masks(country)
-
 
     for variable in variables:
         output_folder = (
@@ -260,16 +288,17 @@ def main():
                 spatial_resolution != "CEU-3" and project == "NUKLEUS"
             ):
                 continue
-            for temporal_resolution in list_of_wanted_resolutions:
-                data_folders = find_folders(variable)
-                for input_folder in data_folders:
-                    create_yearly_data(
-                        input_folder,
-                        output_folder,
-                        overwrite,
-                        temporal_resolution,
-                        variable,
-                    )
+
+
+            data_folders = find_folders(variable)
+            for input_folder in data_folders:
+                create_yearly_data(
+                    input_folder,
+                    output_folder,
+                    overwrite,
+                    list_of_wanted_resolutions,
+                    variable,
+                )
 
         create_info_json(output_folder)
 

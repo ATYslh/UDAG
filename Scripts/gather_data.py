@@ -122,8 +122,6 @@ def create_datasets(
         if os.path.exists(output_filename) and not overwrite:
             continue
 
-        print(output_filename)
-        
         if temporal_resolution == highest_temporal_resolution:
             files = get_sorted_nc_files(input_folder)
             dummy_data = "/scratch/g/g260190/dummy.nc"
@@ -261,15 +259,15 @@ def precompute_masks(country):
         mask2d.to_netcdf(mask_file)
 
         saved_masks[res] = mask_file
-        print(f"Saved mask for {res} to {mask_file}")
+        print(f"Saved mask for {res} to {mask_file}", file=sys.stderr)
 
     return saved_masks
 
 
 def main():
-    variables = ["tas","tasmin","tasmax"]
+    variables = ["sfcWind"]
     country = "Germany"
-    project = "NUKLEUS"
+    project = "UDAG"
 
     list_of_wanted_resolutions = ["yearly", "mon"]  # ["yearly", "mon", "day", "1hr"]
     list_of_wanted_resolutions=sorted_resolution(list_of_wanted_resolutions)
