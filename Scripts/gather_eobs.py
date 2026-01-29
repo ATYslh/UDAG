@@ -1,6 +1,6 @@
+import hashlib
 import json
 import os
-import re
 import sys
 from datetime import datetime
 
@@ -19,19 +19,23 @@ def mask_data(input_file: str, mask2d, variable: str):
         "/scratch/g/g260190/",
         os.path.basename(input_file).replace(".nc", "_fldmean.nc"),
     )
-
+    if variable=="sfcWind":
+        variable="fg"
     # Open only the needed variable with dask chunks
     ds = xr.open_dataset(input_file, chunks={})[[variable]]
 
     # Broadcast mask2d across time (no expand_dims needed)
-    fldmean = ds[variable].where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
+    fldmean = ds[variable].where(mask2d == 0).mean(dim=["lat", "lon"], skipna=True)
 
     # Keep the variable name 'variable'
+    if variable=="fg":
+        variable="sfcWind"
     ds_out = fldmean.to_dataset(name=variable)
 
     encoding = {variable: {"zlib": True, "complevel": 4}}
     ds_out.to_netcdf(output_file, engine="h5netcdf", encoding=encoding)
-
+    os.system(f"cdo settaxis,1980-01-01,00:00:00,1day {output_file} {output_file}z")
+    os.system(f"mv {output_file}z {output_file}")
     return output_file
 
 
@@ -58,52 +62,40 @@ def get_sorted_nc_files(folder_path: str, substring=None):
     """
     Returns a sorted list of all nc_files in the folder_path.
     """
-    nc_files = [
-        os.path.join(folder_path, f)
-        for f in os.listdir(folder_path)
-        if f.endswith(".nc")
-        and os.path.isfile(os.path.join(folder_path, f))
-        and (substring is None or substring in f)
-        and ("_v6-0.igrid_hc.nc" in f)
-        and (2015>=int(re.findall(r"\d{4}",f)[0])>=2005)
+
+    return [
+        "/work/gg0302/observations/eObs/eObs31.0/daily/0.1deg_reg/fg_ens_mean_0.1deg_reg_v31.0e.nc"
     ]
-    return sorted(nc_files)
+
 
 def create_yearly_data(
-    output_folder, overwrite, temporal_resolution, variable: str
+    output_folder, overwrite, list_temporal_resolution, variable: str
 ) -> None:
-    output_folder = os.path.join(output_folder, temporal_resolution)
 
-    input_folder=f"/pool/data/CLMcom/CCLM-CRCS/observationalData/HYRAS/heightcorrv6/{variable}"
+    files = [
+        "/work/gg0302/observations/eObs/eObs31.0/daily/0.1deg_reg/fg_ens_mean_0.1deg_reg_v31.0e.nc"
+    ]
+    now = datetime.now().isoformat()
+    hash_value = hashlib.sha256(now.encode()).hexdigest()
 
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
-
-    output_filename = os.path.join(
-        output_folder, "Hyras.nc"
+    print(
+        f"Working on /work/gg0302/observations/eObs/eObs31.0/daily/0.1deg_reg/fg_ens_mean_0.1deg_reg_v31.0e.nc {datetime.now()}",
+        file=sys.stderr,
     )
-    if os.path.exists(output_filename) and not overwrite:
-        return
-
-    files = get_sorted_nc_files(input_folder)
-    dummy_data = "/scratch/g/g260190/dummy.nc"
-    print(f"Working on {input_folder} {datetime.now()}", file=sys.stderr)
 
     cdo = Cdo()
-
+    temporal_resolution=list_temporal_resolution[0]
     # Apply mask and fldmean to each file individually before merging
     fldmean_files = []
-    if "HYRAS" in input_folder:
-        mask_file = "/work/bb1364/g260190_heinrich/UDAG/Scripts/masks/mask_HYRAS.nc"
+    if "eObs" in files[0]:
+        mask_file = "/work/bb1364/g260190_heinrich/UDAG/Scripts/masks/mask_EOBS.nc"
     else:
-        raise ValueError(f"Unknown resolution in filename: {input_folder}")
+        raise ValueError(f"Unknown resolution in filename: {files[0]}")
 
     with xr.open_dataarray(mask_file) as mask2d:
         for f in files:
             fldmean_files.append(mask_data(f, mask2d, variable))
-
-    # Now merge the reduced files in time
-    cdo.mergetime(input=fldmean_files, output=dummy_data)
+    dummy_data = fldmean_files[0]
 
     # Check if we have to limit the years to 2100
     ds = xr.open_dataset(dummy_data)
@@ -114,16 +106,37 @@ def create_yearly_data(
         cdo.selyear("2015/2100", input=dummy_data, output=limited_data)
         os.system(f"mv {limited_data} {dummy_data}")
 
-    # At this point dummy_data is already masked+fldmean, so just do temporal averaging
-    if temporal_resolution == "yearly":
-        cdo.yearmean(input=dummy_data, output=output_filename)
-    elif temporal_resolution =="mon":
-        cdo.monmean(input=dummy_data, output=output_filename)
-    elif temporal_resolution =="day":
-        os.system(f"mv {dummy_data} {output_filename}")
-    else:
-        raise ValueError("Unknown resolution or resolution not available.")
 
+    # At this point dummy_data is already masked+fldmean, so just do temporal averaging
+    print(list_temporal_resolution)
+    for temporal_resolution in list_temporal_resolution:
+        output_folder2 = os.path.join(output_folder, temporal_resolution)
+
+        if not os.path.exists(output_folder2):
+            os.mkdir(output_folder2)
+
+        output_filename = os.path.join(output_folder2, "EOBS.nc")
+        if os.path.exists(output_filename) and not overwrite:
+            return
+        print(f"output folder: {output_folder2} for {temporal_resolution}")
+        if temporal_resolution == "yearly":
+            cdo.yearmean(input=dummy_data, output=output_filename)
+        elif temporal_resolution == "mon":
+            cdo.monmean(input=dummy_data, output=output_filename)
+        elif temporal_resolution == "day":
+            os.system(f"cp {dummy_data} {output_filename}")
+        else:
+            raise ValueError("Unknown resolution or resolution not available.")
+
+def sorted_resolution(list_of_wanted_resolutions) -> list[str]:
+    temporary_resolutions = {
+        "yearly": 1,
+        "mon": 2,
+        "day": 3,
+        "1hr": 4,
+    }
+    
+    return sorted(list_of_wanted_resolutions, key=lambda x: temporary_resolutions[x], reverse=True)
 
 def sort_dict_recursively(d):
     """
@@ -159,7 +172,8 @@ def create_info_json(output_folder):
 
 def precompute_masks(country):
     resolutions = {
-        "HYRAS": "/work/pd1309/CCLM-CRCS/observationalData/HYRAS/heightcorrv6/tas/tas_hyras_5_2007_v6-0.igrid_hc.nc",    }
+        "EOBS": "/work/gg0302/observations/eObs/eObs31.0/daily/0.1deg_reg/fg_ens_mean_0.1deg_reg_v31.0e.nc",
+    }
     shapefile = "/work/bb1364/g260190_heinrich/UDAG/Scripts/shape_files/ne_10m_admin_0_countries.shp"
 
     world = gpd.read_file(shapefile)
@@ -194,31 +208,34 @@ def precompute_masks(country):
 
 
 def main():
-    variables=["tas","tasmin","tasmax"]
+    variables = ["sfcWind"]
     country = "Germany"
-    project = "HYRAS"
+    project = "EOBS"
 
-
-    list_of_wanted_resolutions = ["yearly", "mon","day"]  # ["yearly", "mon", "day", "1hr"]
-
+    list_of_wanted_resolutions = [
+        "yearly",
+        "mon",
+        "day",
+    ]  # ["yearly", "mon", "day", "1hr"]
+    list_of_wanted_resolutions=sorted_resolution(list_of_wanted_resolutions)
     overwrite = True
     precompute_masks(country)
 
     for variable in variables:
         output_folder = (
-        f"/work/bb1364/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
-    )
-    
+            f"/work/bb1364/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
+        )
+
         if not os.path.exists(output_folder):
             os.mkdir(output_folder)
 
-        for temporal_resolution in list_of_wanted_resolutions:
-            create_yearly_data(
-                        output_folder,
-                        overwrite,
-                        temporal_resolution,
-                        variable,
-                    )
+
+        create_yearly_data(
+            output_folder,
+            overwrite,
+            list_of_wanted_resolutions,
+            variable,
+        )
 
         create_info_json(output_folder)
 

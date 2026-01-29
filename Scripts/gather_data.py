@@ -64,6 +64,11 @@ def find_folders(
     elif project == "NUKLEUS":
         base = Path("/work/bb1203/data_NUKLEUS_CMOR/CEU-3/")
         pattern = f"CLMcom-*/*/*/*/*/*/{temporal_resolution}/{variable}/*"
+    elif project=="HYRAS":
+        folder_name=f"/work/pd1309/CCLM-CRCS/observationalData/HYRAS/v6-0/{variable}"
+        if os.path.exists(folder_name):
+            return [f"/work/pd1309/CCLM-CRCS/observationalData/HYRAS/v6-0/{variable}"]
+        raise ValueError(f"Unknown variable {variable} for HYRAS")
     else:
         raise ValueError(f"Unknown project: {project}")
 
@@ -99,6 +104,8 @@ def generate_filename(folder: str, variable: str) -> str:
             raise ValueError("Cannot identify name of forcing")
         parts[6] = mapping[parts[6]]
         return "_".join([parts[4], parts[5], parts[6], parts[7], variable]) + ".nc"
+    elif "HYRAS" in folder:
+        return "HYRAS.nc"
     else:
         raise ValueError("Cannot identify project name")
 
@@ -265,7 +272,7 @@ def precompute_masks(country):
 
 
 def main():
-    variables = ["sfcWind"]
+    variables = ["sfcWind","pr","rsds"]
     country = "Germany"
     project = "UDAG"
 

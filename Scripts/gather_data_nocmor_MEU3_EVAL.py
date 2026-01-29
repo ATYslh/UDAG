@@ -9,11 +9,6 @@ import regionmask
 import xarray as xr
 from cdo import Cdo
 
-# TODO: Add rsds
-# TODO: RENAME: sfcWind
-# TODO REPLACE MV with copy for daily
-# TODO: FIX Bullshit for frequency
-
 
 def mask_data(input_file: str, mask2d, variable: str):
     """
@@ -252,6 +247,7 @@ def precompute_masks(country):
 
     return saved_masks
 
+
 def sorted_resolution(list_of_wanted_resolutions) -> list[str]:
     temporary_resolutions = {
         "yearly": 1,
@@ -259,8 +255,11 @@ def sorted_resolution(list_of_wanted_resolutions) -> list[str]:
         "day": 3,
         "1hr": 4,
     }
-    
-    return sorted(list_of_wanted_resolutions, key=lambda x: temporary_resolutions[x], reverse=True)
+
+    return sorted(
+        list_of_wanted_resolutions, key=lambda x: temporary_resolutions[x], reverse=True
+    )
+
 
 def main():
     variables = ["pr", "rsds", "sfcWind"]
@@ -272,7 +271,7 @@ def main():
         "mon",
         "day",
     ]  # ["yearly", "mon", "day", "1hr"]
-    list_of_wanted_resolutions=sorted_resolution(list_of_wanted_resolutions)
+    list_of_wanted_resolutions = sorted_resolution(list_of_wanted_resolutions)
     overwrite = True
     precompute_masks(country)
 
@@ -288,7 +287,6 @@ def main():
                 spatial_resolution != "CEU-3" and project == "NUKLEUS"
             ):
                 continue
-
 
             data_folders = find_folders(variable)
             for input_folder in data_folders:
