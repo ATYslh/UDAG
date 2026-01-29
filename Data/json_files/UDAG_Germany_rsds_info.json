@@ -1,4 +1,13 @@
 {
+    "day": {
+        "ERA5": {
+            "evaluation": {
+                "MEU-3": [
+                    "/work/bb1364/g260190_heinrich/UDAG/Data/UDAG/Germany/rsds/day/MEU-3_CLMcom-Hereon_ERA5_evaluation_rsds.nc"
+                ]
+            }
+        }
+    },
     "mon": {
         "CNRM-ESM2-1": {
             "historical": {
