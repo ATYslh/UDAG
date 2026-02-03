@@ -64,8 +64,8 @@ def find_folders(
     elif project == "NUKLEUS":
         base = Path("/work/bb1203/data_NUKLEUS_CMOR/CEU-3/")
         pattern = f"CLMcom-*/*/*/*/*/*/{temporal_resolution}/{variable}/*"
-    elif project=="HYRAS":
-        folder_name=f"/work/pd1309/CCLM-CRCS/observationalData/HYRAS/v6-0/{variable}"
+    elif project == "HYRAS":
+        folder_name = f"/work/pd1309/CCLM-CRCS/observationalData/HYRAS/v6-0/{variable}"
         if os.path.exists(folder_name):
             return [f"/work/pd1309/CCLM-CRCS/observationalData/HYRAS/v6-0/{variable}"]
         raise ValueError(f"Unknown variable {variable} for HYRAS")
@@ -111,7 +111,11 @@ def generate_filename(folder: str, variable: str) -> str:
 
 
 def create_datasets(
-    input_folder, output_folder_project, overwrite, list_of_wanted_resolutions, variable: str
+    input_folder,
+    output_folder_project,
+    overwrite,
+    list_of_wanted_resolutions,
+    variable: str,
 ) -> None:
     highest_temporal_resolution = get_highest_temporal_resolution(
         list_of_wanted_resolutions
@@ -194,8 +198,10 @@ def sorted_resolution(list_of_wanted_resolutions) -> list[str]:
         "day": 3,
         "1hr": 4,
     }
-    
-    return sorted(list_of_wanted_resolutions, key=lambda x: temporary_resolutions[x], reverse=True)
+
+    return sorted(
+        list_of_wanted_resolutions, key=lambda x: temporary_resolutions[x], reverse=True
+    )
 
 
 def create_info_json(output_folder):
@@ -246,7 +252,7 @@ def precompute_masks(country):
     elif country == "Denmark":
         abbrev = "DK"
     else:
-        raise ValueError(f"Unknwon country {country}")
+        raise ValueError(f"Unknown country {country}")
 
     country_info = world.loc[world["NAME"] == country].to_crs("EPSG:4326")
     region = regionmask.Regions(
@@ -272,12 +278,16 @@ def precompute_masks(country):
 
 
 def main():
-    variables = ["sfcWind","pr","rsds"]
+    variables = ["sfcWind", "pr", "rsds"]
     country = "Germany"
-    project = "UDAG"
+    project = "NUKLEUS"
 
-    list_of_wanted_resolutions = ["yearly", "mon"]  # ["yearly", "mon", "day", "1hr"]
-    list_of_wanted_resolutions=sorted_resolution(list_of_wanted_resolutions)
+    list_of_wanted_resolutions = [
+        "yearly",
+        "mon",
+        "day",
+    ]  # ["yearly", "mon", "day", "1hr"]
+    list_of_wanted_resolutions = sorted_resolution(list_of_wanted_resolutions)
 
     overwrite = False
     precompute_masks(country)

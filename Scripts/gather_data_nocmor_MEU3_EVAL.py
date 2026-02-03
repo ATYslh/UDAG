@@ -35,7 +35,8 @@ def mask_data(input_file: str, mask2d, variable: str):
             ".nc", f"_{hashlib.md5(input_file.encode()).hexdigest()}.nc"
         ),
     )
-
+    if os.path.exists(output_file):
+        return output_file
     # Open only the needed variable with dask chunks
     ds = xr.open_dataset(input_file, chunks={})[[variable_old]]
 
@@ -45,9 +46,9 @@ def mask_data(input_file: str, mask2d, variable: str):
     )
 
     # Keep the variable name 'variable'
-    ds_out = fldmean.to_dataset(name=variable_old)
+    ds_out = fldmean.to_dataset(name=variable)
 
-    encoding = {variable_old: {"zlib": True, "complevel": 4}}
+    encoding = {variable: {"zlib": True, "complevel": 4}}
     ds_out.to_netcdf(output_file, engine="h5netcdf", encoding=encoding)
 
     return output_file
@@ -98,9 +99,9 @@ def generate_filename(variable: str) -> str:
 
 
 def create_yearly_data(
-    input_folder, output_folder, overwrite, temporal_resolution, variable: str
+    input_folder, output_folder_base, overwrite, temporal_resolution, variable: str
 ) -> None:
-    output_folder = os.path.join(output_folder, temporal_resolution[0])
+    output_folder = os.path.join(output_folder_base, temporal_resolution[0])
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
@@ -135,26 +136,11 @@ def create_yearly_data(
         cdo.selyear("2015/2100", input=dummy_data, output=limited_data)
         os.system(f"mv {limited_data} {dummy_data}")
 
-    variable_old = ""
-    if variable == "tas":
-        variable_old = "T_2M"
-    elif variable == "tasmax":
-        variable_old = "TMAX_2M"
-    elif variable == "tasmin":
-        variable_old = "TMIN_2M"
-    elif variable == "pr":
-        variable_old = "TOT_PREC"
-    elif variable == "rsds":
-        variable_old = "ASOD_S"
-    elif variable == "sfcWind":
-        variable_old = "SP_10M"
-    else:
-        raise ValueError("unknown variable")
-
-    os.system(f"ncrename -v {variable_old},{variable} {dummy_data}")
-
     # At this point dummy_data is already masked+fldmean, so just do temporal averaging
     for resolution in temporal_resolution:
+        output_folder = os.path.join(output_folder_base, resolution)
+        output_filename = os.path.join(output_folder, generate_filename(variable))
+
         if resolution == "yearly":
             cdo.yearmean(input=dummy_data, output=output_filename)
         elif resolution == "mon":
