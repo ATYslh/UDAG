@@ -141,16 +141,28 @@ def create_yearly_data(
         output_folder = os.path.join(output_folder_base, resolution)
         output_filename = os.path.join(output_folder, generate_filename(variable))
 
-        if resolution == "yearly":
-            cdo.yearmean(input=dummy_data, output=output_filename)
-        elif resolution == "mon":
-            cdo.monmean(input=dummy_data, output=output_filename)
-        elif resolution == "day":
-            cdo.daymean(input=dummy_data, output=output_filename)
-        elif resolution == "1hr":
-            os.system(f"cp {dummy_data} {output_filename}")
+        if variable == "pr":
+            if resolution == "yearly":
+                cdo.yearsum(input=dummy_data, output=output_filename)
+            elif resolution == "mon":
+                cdo.monsum(input=dummy_data, output=output_filename)
+            elif resolution == "day":
+                cdo.daysum(input=dummy_data, output=output_filename)
+            elif resolution == "1hr":
+                os.system(f"cp {dummy_data} {output_filename}")
+            else:
+                raise ValueError("Unknown resolution or resolution not available.")
         else:
-            raise ValueError("Unknown resolution or resolution not available.")
+            if resolution == "yearly":
+                cdo.yearmean(input=dummy_data, output=output_filename)
+            elif resolution == "mon":
+                cdo.monmean(input=dummy_data, output=output_filename)
+            elif resolution == "day":
+                cdo.daymean(input=dummy_data, output=output_filename)
+            elif resolution == "1hr":
+                os.system(f"cp {dummy_data} {output_filename}")
+            else:
+                raise ValueError("Unknown resolution or resolution not available.")
 
 
 def sort_dict_recursively(d):
@@ -248,7 +260,7 @@ def sorted_resolution(list_of_wanted_resolutions) -> list[str]:
 
 
 def main():
-    variables = ["pr", "rsds", "sfcWind"]
+    variables = ["pr"]
     country = "Germany"
     project = "UDAG"
 

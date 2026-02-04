@@ -21,7 +21,7 @@ def mask_data(input_file: str, mask2d, variable: str):
 
     # Open only the needed variable with dask chunks
     ds = xr.open_dataset(input_file, chunks={})[[variable]]
-    ds[variable] = ds[variable] * 3600
+    ds[variable] = ds[variable]
     # Broadcast mask2d across time (no expand_dims needed)
     fldmean = ds[variable].where(mask2d == 0).mean(dim=["y", "x"], skipna=True)
     # Keep the variable name 'variable'
@@ -111,9 +111,9 @@ def create_yearly_data(
 
     # At this point dummy_data is already masked+fldmean, so just do temporal averaging
     if temporal_resolution == "yearly":
-        cdo.yearmean(input=dummy_data, output=output_filename)
+        cdo.yearsum(input=dummy_data, output=output_filename)
     elif temporal_resolution == "mon":
-        cdo.monmean(input=dummy_data, output=output_filename)
+        cdo.monsum(input=dummy_data, output=output_filename)
     elif temporal_resolution == "day":
         os.system(f"cp {dummy_data} {output_filename}")
     else:

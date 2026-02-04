@@ -169,11 +169,11 @@ def create_datasets(
             raise ValueError("input data is empty")
         # At this point dummy_data is already masked+fldmean, so just do temporal averaging
         if temporal_resolution == "yearly":
-            cdo.yearmonmean(input=dummy_data, output=output_filename)
+            cdo.yearsum(input=dummy_data, output=output_filename)
         elif temporal_resolution == "mon":
-            cdo.monmean(input=dummy_data, output=output_filename)
+            cdo.monsum(input=dummy_data, output=output_filename)
         elif temporal_resolution == "day":
-            cdo.daymean(input=dummy_data, output=output_filename)
+            cdo.daysum(input=dummy_data, output=output_filename)
         elif temporal_resolution == "1hr":
             os.system(f"cp {dummy_data} {output_filename}")
         else:
@@ -278,49 +278,50 @@ def precompute_masks(country):
 
 
 def main():
-    variables = ["rsds","sfcWind","pr"]
+    variables = ["pr"]
     country = "Germany"
-    project = "UDAG"
 
-    list_of_wanted_resolutions = [
-        "yearly",
-        "mon",
-        "day",
-    ]  # ["yearly", "mon", "day", "1hr"]
-    list_of_wanted_resolutions = sorted_resolution(list_of_wanted_resolutions)
+    list_of_projects=["UDAG","NUKLEUS"]
+    for project in list_of_projects:
+        list_of_wanted_resolutions = [
+            "yearly",
+            "mon",
+            "day",
+        ]  # ["yearly", "mon", "day", "1hr"]
+        list_of_wanted_resolutions = sorted_resolution(list_of_wanted_resolutions)
 
-    overwrite = False
-    precompute_masks(country)
+        overwrite = True
+        precompute_masks(country)
 
-    for variable in variables:
-        output_folder = (
-            f"/work/bb1364/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
-        )
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
-
-        for spatial_resolution in ["EUR-12", "MEU-3", "CEU-3"]:
-            if (spatial_resolution == "CEU-3" and project != "NUKLEUS") or (
-                spatial_resolution != "CEU-3" and project == "NUKLEUS"
-            ):
-                continue
-            data_folders = find_folders(
-                project,
-                list_of_wanted_resolutions,
-                variable,
-                project,
-                spatial_resolution,
+        for variable in variables:
+            output_folder = (
+                f"/work/bb1364/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
             )
-            for input_folder in data_folders:
-                create_datasets(
-                    input_folder,
-                    output_folder,
-                    overwrite,
+            if not os.path.exists(output_folder):
+                os.mkdir(output_folder)
+
+            for spatial_resolution in ["EUR-12", "MEU-3", "CEU-3"]:
+                if (spatial_resolution == "CEU-3" and project != "NUKLEUS") or (
+                    spatial_resolution != "CEU-3" and project == "NUKLEUS"
+                ):
+                    continue
+                data_folders = find_folders(
+                    project,
                     list_of_wanted_resolutions,
                     variable,
+                    project,
+                    spatial_resolution,
                 )
+                for input_folder in data_folders:
+                    create_datasets(
+                        input_folder,
+                        output_folder,
+                        overwrite,
+                        list_of_wanted_resolutions,
+                        variable,
+                    )
 
-        create_info_json(output_folder)
+            create_info_json(output_folder)
 
 
 if __name__ == "__main__":
