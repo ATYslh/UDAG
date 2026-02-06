@@ -122,7 +122,7 @@ def create_datasets(
     )
     cdo = Cdo()
     dummy_data = ""
-    for temporal_resolution in list_of_wanted_resolutions:
+    for index, temporal_resolution in enumerate(list_of_wanted_resolutions):
         output_folder = os.path.join(output_folder_project, temporal_resolution)
         if not os.path.exists(output_folder):
             os.mkdir(output_folder)
@@ -131,6 +131,8 @@ def create_datasets(
             output_folder, generate_filename(input_folder, variable)
         )
         if os.path.exists(output_filename) and not overwrite:
+            if index<len(list_of_wanted_resolutions):
+                highest_temporal_resolution=list_of_wanted_resolutions[index+1]
             continue
 
         if temporal_resolution == highest_temporal_resolution:
@@ -169,7 +171,10 @@ def create_datasets(
             raise ValueError("input data is empty")
         # At this point dummy_data is already masked+fldmean, so just do temporal averaging
         if temporal_resolution == "yearly":
-            cdo.yearmonmean(input=dummy_data, output=output_filename)
+            if highest_temporal_resolution =="mon" or highest_temporal_resolution =="yearly":
+                cdo.yearmonmean(input=dummy_data, output=output_filename)
+            else:
+                cdo.yearmean(input=dummy_data, output=output_filename)
         elif temporal_resolution == "mon":
             cdo.monmean(input=dummy_data, output=output_filename)
         elif temporal_resolution == "day":
@@ -278,9 +283,9 @@ def precompute_masks(country):
 
 
 def main():
-    variables = ["rsds","sfcWind","pr"]
+    variables = ["rsds", "sfcWind", "tas", "tasmax", "tasmin"]
     country = "Germany"
-    project = "UDAG"
+    project = "NUKLEUS"
 
     list_of_wanted_resolutions = [
         "yearly",
@@ -293,6 +298,7 @@ def main():
     precompute_masks(country)
 
     for variable in variables:
+        print(f"Starting work on {variable}")
         output_folder = (
             f"/work/bb1364/g260190_heinrich/UDAG/Data/{project}/{country}/{variable}"
         )

@@ -22,7 +22,7 @@ def mask_data(input_file: str, mask2d, variable: str):
 
     # Open only the needed variable with dask chunks
     ds = xr.open_dataset(input_file, chunks={})[[variable]]
-
+    ds[variable]=ds[variable]*86400
     # Broadcast mask2d across time (no expand_dims needed)
     fldmean = ds[variable].where(mask2d == 0).mean(dim=["rlat", "rlon"], skipna=True)
 
@@ -281,7 +281,7 @@ def main():
     variables = ["pr"]
     country = "Germany"
 
-    list_of_projects=["UDAG","NUKLEUS"]
+    list_of_projects=["NUKLEUS"]
     for project in list_of_projects:
         list_of_wanted_resolutions = [
             "yearly",
@@ -290,7 +290,7 @@ def main():
         ]  # ["yearly", "mon", "day", "1hr"]
         list_of_wanted_resolutions = sorted_resolution(list_of_wanted_resolutions)
 
-        overwrite = True
+        overwrite = False
         precompute_masks(country)
 
         for variable in variables:
